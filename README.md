@@ -1,5 +1,5 @@
 
-![Mascot](tanuki.png)
+![Mascot](public/tanuki.png)
 
 # Sonouchi
 
@@ -150,6 +150,28 @@ try the release build:
 
 Judge speed on a release build, not on `watch`, which is much slower.
 
+### Icons
+
+The icons in `public/` are made from `tanuki.png` with ImageMagick
+(`brew install imagemagick`). The white background is made transparent,
+and the small sizes use the face only, which stays recognisable at 16
+pixels. To make them again, from this directory:
+
+    magick tanuki.png -alpha set -fuzz 12% -fill none \
+      -draw "color 0,0 floodfill" -draw "color 762,0 floodfill" \
+      -draw "color 0,845 floodfill" -draw "color 762,845 floodfill" \
+      /tmp/tanuki-clear.png
+    magick /tmp/tanuki-clear.png -crop 400x400+130+60 +repage \
+      -define icon:auto-resize=48,32,16 public/favicon.ico
+    magick /tmp/tanuki-clear.png -crop 560x560+50+20 +repage \
+      -resize 192x192 public/icon-192.png
+    magick /tmp/tanuki-clear.png -crop 560x560+50+20 +repage \
+      -resize 160x160 -background '#F6DFBF' -gravity center \
+      -extent 180x180 -alpha remove -alpha off public/apple-touch-icon.png
+
+The crop offsets are in pixels of the 763 × 846 original. The Apple
+icon needs an opaque background; `#F6DFBF` is the tanuki's belly.
+
 ## Coding agents
 
 Start Claude Code from this directory, so that it loads `CLAUDE.md`,
@@ -227,6 +249,8 @@ Tools outside these files, as last checked:
     src/sonouchi/app.cljs   the shell: the one atom, rendering
     test/                   tests, in .cljc, run on the JVM and Node
     public/index.html       the page; builds write public/js/
+    public/*.ico, *.png     the icons, made from tanuki.png
+    tanuki.png              the original tanuki drawing
     guard/                  the project's own rules and their checker
     bin/                    check, fmt, the guard-rail list, git hook
     .claude/                agent hooks and settings
