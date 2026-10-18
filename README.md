@@ -1,4 +1,13 @@
+
+![Mascot](tanuki.png)
+
 # sonouchi
+
+
+Every project planner knows that a perfect upfront estimate is a work of fiction, so we chose the legendary Japanese Tanuki as our official mascot. Famous in folklore for using leaf magic to create beautiful illusions that shift over time, our carefree little friend is the perfect reminder that deadlines and budgets are living, breathing things. He comes fully equipped with a clipboard and an hourglass to track your work, but his relaxed smile lets you know that when unexpected scope creep rolls in, it’s okay to take a breath and figure it out *sonouchi*—eventually.
+
+
+
 
 The browser client for [soonish](../soonish), the project estimation
 server. It is written in ClojureScript, renders with
