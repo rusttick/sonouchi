@@ -6,7 +6,7 @@
 そのうち (sonouchi) means "soon", "before long", "eventually"
 
 Every project planner knows that a perfect upfront estimate is a work of fiction.
-So our ![mascot](https://en.wikipedia.org/wiki/Bake-danuki) is a reminder that project estimates are foolish illusions.
+So our [mascot](https://en.wikipedia.org/wiki/Bake-danuki) is a reminder that project estimates are foolish illusions.
 
 The browser client for [soonish](../soonish), the project estimation
 server. It is written in ClojureScript, renders with
