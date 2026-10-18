@@ -1,0 +1,9 @@
+/node_modules/
+/.shadow-cljs/
+/.cpcache/
+/.clj-kondo/.cache/
+/.lsp/
+/.nrepl-port
+/public/js/
+/target/
+/.claude/settings.local.json

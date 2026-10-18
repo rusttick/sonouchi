@@ -1,0 +1,12 @@
+{
+  "name": "sonouchi",
+  "private": true,
+  "description": "Browser client for soonish. Every version is exact.",
+  "scripts": {
+    "watch": "shadow-cljs watch app",
+    "release": "shadow-cljs release app"
+  },
+  "devDependencies": {
+    "shadow-cljs": "3.5.7"
+  }
+}

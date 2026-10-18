@@ -43,24 +43,31 @@ Nothing is decided unless it is under "Decided".
 
 ## 1. A prototype that can be changed quickly
 
-Only what is needed to iterate on the UI. The rest of soonish's guard-rails come in section 5.
+Only what is needed to iterate on the UI.
 
-- [ ] **Build tool.** shadow-cljs, which uses npm packages and hot-reloads, or the Clojure CLI alone. Versions pinned, with lockfiles for npm.
-- [ ] **Rendering library.** Compare against the coding guide:
-  - Replicant: the view is a pure function from data to hiccup
-  - Reagent, or re-frame: React-based; re-frame keeps one app-db and registers event handlers
-  - UIx: React hooks, written in Clojure
+- [x] **Build tool.** shadow-cljs 3.5.7, set up on 2026-10-18.
+      Clojure dependencies are in `deps.edn` (alias `:shadow`), and the npm package is pinned in `package.json` and `package-lock.json`.
+      `npx shadow-cljs watch app` serves http://localhost:8080 with hot reload.
+- [x] **Rendering library.** Replicant 2026.07.1, set up on 2026-10-18.
+      The view is a pure function from data to hiccup, with event handlers as data. No React and no npm packages.
+      Chosen over Reagent, re-frame and UIx for its size (about 19 KB gzipped), speed and fit with the coding rules.
+- [ ] **Timing every act.** Wrap the one dispatch function to time input delay, update, render and paint, with `performance.mark`.
+      Cross-check with the Event Timing API. A development overlay shows the last act against V12's 0.1 s.
+      Keep the timings in a performance log, apart from the fact log, exported with it.
+      A recorded morning of acts can be replayed on the Pi and an old MacBook as a repeatable load test.
 - [ ] **Drawing library,** for the displays that are not lists or tables (V5, V17): D3, Vega-Lite, or plain SVG from hiccup.
   Choose when the first such display is needed, not before.
-- [ ] **State.** One atom at the edge, holding an immutable value.
+- [x] **State.** One atom in `sonouchi.app`, holding an immutable value. The ratchet counts it.
 - [ ] **The in-browser data set is a log of facts.** Each act appends a fact with its time, as soonish will.
   Views are pure functions of the log, so moving to soonish later changes where the log is kept, not the UI.
 - [ ] **Keeping the data.** Browser storage can be cleared. Save the log to the browser and export it to an EDN file, and import it back.
 - [ ] **Seed data.** Import the owner's real tasks from GitHub Projects, for example with `gh`, so the prototype is tried on real work from the first day.
 - [ ] **Estimates made in the prototype** are marked as prototype data.
       They count for design 3 only if the estimate question was already in its final wording (section 4).
-- [ ] **The pure core in `.cljc`,** with tests on the JVM, so that it can move to soonish unchanged.
-- [ ] **clojure-mcp with a ClojureScript REPL,** so that changes can be tried while the app runs.
+- [x] **The pure core in `.cljc`,** with tests on the JVM and on Node, so that it can move to soonish unchanged.
+- [x] **clojure-mcp,** with the JVM REPL for the core and shadow-cljs's nREPL (port 7888) for the browser (`CONTRIBUTING.md`, "The REPLs").
+- [x] **The guard-rails, ported from soonish** on 2026-10-18: `CLAUDE.md`, `CONTRIBUTING.md`, `bin/check`, the guard, clj-kondo, cljfmt and the Claude Code hooks.
+      The guard reads ClojureScript and both sides of `.cljc`, and counts `js/`, `#js` and other JavaScript interop in the core as host calls.
 
 ## 2. How each part of the UI is designed
 
@@ -165,13 +172,14 @@ These questions were raised in `ux-research.md`, sections 9 to 11.
 
 ## 5. Project hardening
 
-When the UI has settled, mirroring soonish's guard-rails (`../soonish/README.md`, `../soonish/CONTRIBUTING.md`, `../soonish/guard/`).
+When the UI has settled.
 
-- [ ] clj-kondo, cljfmt and the guard, adapted: core and shell namespaces, browser APIs counted as effects, the attribute registry.
-- [ ] A browser test runner for the shell.
-- [ ] Claude Code hooks.
+- [x] clj-kondo, cljfmt and the guard, adapted (section 1).
+- [x] Claude Code hooks (section 1).
+- [x] Move to its own repository, beside soonish.
+- [ ] A browser test runner for the shell, if the shell grows beyond what the REPL and the owner's trials catch.
 - [ ] README with development setup, and a Tests section like soonish's.
-- [ ] Move to its own repository.
+- [ ] Remove the remaining references to the factory repository: `TODO.md` ("Later", other users) and `ux-research.md` (the board tool path, the hickey guide).
 
 ## Later
 

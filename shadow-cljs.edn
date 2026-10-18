@@ -1,0 +1,26 @@
+;; Only the owner changes this file.
+;;
+;; npx shadow-cljs watch app        serve http://localhost:8080, hot reload
+;; npx shadow-cljs release app      an optimised build in public/js
+;; npx shadow-cljs compile test     then  node target/node-test.js
+;;
+;; Warnings are errors, so a build with a warning fails.
+{:deps {:aliases [:shadow]}
+
+ ;; The browser REPL. Its port is written to .shadow-cljs/nrepl.port,
+ ;; apart from the JVM REPL's .nrepl-port.
+ :nrepl {:port 7888}
+
+ :dev-http {8080 "public"}
+
+ :builds
+ {:app {:target :browser
+        :output-dir "public/js"
+        :asset-path "/js"
+        :modules {:main {:init-fn sonouchi.app/init}}
+        :compiler-options {:warnings-as-errors true}}
+
+  :test {:target :node-test
+         :output-to "target/node-test.js"
+         :ns-regexp "-test$"
+         :compiler-options {:warnings-as-errors true}}}}
