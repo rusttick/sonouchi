@@ -5,11 +5,18 @@ It is written in ClojureScript.
 This file lists the work in order.
 Nothing is decided unless it is under "Decided".
 
-**Paths.** `../soonish/` assumes sonouchi sits next to soonish, as it will once it moves out of the factory repository.
+**Paths.** `../soonish/` is the soonish repository, next to this one.
 
 **The research.**
 - [ux-research.md](ux-research.md): the workflow, the data it needs, and design ideas I1 to I10.
 - [ux-research-visual.md](ux-research-visual.md): perception and interaction, and rules V1 to V17.
+
+## Where things stand (2026-10-18)
+
+- Section 1, the prototype, is done apart from the timing log, the drawing library and prototype estimates, each of which waits for something.
+- Quick entry, the first part, is built and in trial from 2026-10-19. Add to its friction log: `notes/2026-10-18-quick-entry.md`.
+- Next: design the stand-up pass (section 3) with the steps in section 2.
+  It needs the first task attributes beyond the title, and a first answer to the frame: how the tasks to act on are chosen.
 
 ## Decided
 
@@ -35,7 +42,7 @@ Nothing is decided unless it is under "Decided".
 - **Less familiar displays only with a proven reason.** Layouts are stable and deterministic. Modes are visible.
 - **ClojureScript**, so that client and server share one language, one style and one set of guard-rails.
 - **A client for soonish.** The model it serves is `../soonish/doc/design3.md`, starting with Step 0, including dependency links.
-- **A self-contained repository** later, like soonish. Its CONTRIBUTING.md will adapt `../soonish/CONTRIBUTING.md` to the browser.
+- **A self-contained repository,** beside soonish. Its `CONTRIBUTING.md` adapts `../soonish/CONTRIBUTING.md` to the browser.
 - **The coding philosophy** is the same: values, pure functions, a thin shell around a pure core, and facts appended rather than overwritten.
 - **One user on a laptop.** No simultaneous editing, and no CRDTs.
 - **Sign-in later, perhaps:** Google OAuth through a proxy in front, so that the app never handles sign-in itself.
@@ -69,7 +76,7 @@ Only what is needed to iterate on the UI.
   - ids are random UUIDs, made by the shell, so exported logs can be merged without clashes
   - `:act/by` is left out while there is one user: an act without it was made by the owner
   - a value in a patch replaces the old one, sets included; `:patch/retract` removes attributes
-  - undo appends an act whose patches put back the values from before (`undo-patches`); it has no key or button yet
+  - undo appends an act whose patches put back the values from before (`undo-patches`); redo undoes the undo (`sonouchi.core.history`)
 - [x] **Keeping the data.** The log is saved in the browser's storage on every change, and exported to and imported from an EDN file.
       An import replaces the log, after keeping the old one in the browser's storage. A saved log that cannot be read is kept aside, not overwritten.
 - **No seed data** (decided 2026-10-18). The owner enters tasks by hand, which also tests how well adding tasks works.
@@ -191,7 +198,7 @@ When the UI has settled.
 - [x] Claude Code hooks (section 1).
 - [x] Move to its own repository, beside soonish.
 - [ ] A browser test runner for the shell, if the shell grows beyond what the REPL and the owner's trials catch.
-- [ ] README with development setup, and a Tests section like soonish's.
+- [x] README with development setup, and a Tests section like soonish's.
 - [ ] Remove the remaining references to the factory repository: `TODO.md` ("Later", other users) and `ux-research.md` (the board tool path, the hickey guide).
 
 ## Later
