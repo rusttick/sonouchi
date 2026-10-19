@@ -29,6 +29,49 @@
   could not be read. Each is a map with :problem/message."
     :schema [:vector map?]}
 
+   :state/platform
+   {:doc "Which keyboard conventions apply: :mac, or :other for Windows
+  and Linux. Set by the shell."
+    :schema [:enum :mac :other]}
+
+   :state/now
+   {:doc "The shell's clock when the state last changed. The core reads
+  the time only from here."
+    :schema inst?}
+
+   :state/utc-offset-minutes
+   {:doc "How many minutes local time is ahead of UTC, such as 540 in
+  Japan. Set by the shell, so that the core can show local times."
+    :schema int?}
+
+   :state/last-act-ms
+   {:doc "How long the last act took, from the key press to the next
+  painted frame, in milliseconds (V12)."
+    :schema number?}
+
+   ;; Tasks
+
+   :task/title
+   {:doc "What is on the post-it: a few words describing the task. Never
+  blank."
+    :schema [:and string? [:fn #(re-find #"\S" %)]]}
+
+   ;; Actions: what made an act (:act/action)
+
+   :action/add-task
+   {:doc "Adds tasks, one patch per task, each with a :task/title."
+    :schema keyword?}
+
+   :action/undo
+   {:doc "Undoes the act named in :act/undoes, the latest one not yet
+  undone."
+    :schema keyword?}
+
+   :action/redo
+   {:doc "Undoes the undo named in :act/undoes, which puts back what it
+  removed."
+    :schema keyword?}
+
    ;; Acts: one per thing the owner does that changes the record
 
    :act/id
@@ -53,7 +96,8 @@
     :schema [:vector map?]}
 
    :act/undoes
-   {:doc "The :act/id of the act that this act undoes."
+   {:doc "The :act/id of the act that this act undoes. A redo undoes an
+  undo."
     :schema uuid?}
 
    ;; Patches: the attributes of one entity that an act changed
@@ -87,4 +131,48 @@
 
    :command/import
    {:doc "Replace the log with one read from an EDN file."
-    :schema [:tuple [:= :command/import]]}})
+    :schema [:tuple [:= :command/import]]}
+
+   :command/add
+   {:doc "Add the text in the new-task field as tasks, one per line."
+    :schema keyword?}
+
+   :command/clear
+   {:doc "Empty the new-task field."
+    :schema keyword?}
+
+   :command/undo
+   {:doc "Undo the latest act not yet undone."
+    :schema keyword?}
+
+   :command/redo
+   {:doc "Redo the latest undo."
+    :schema keyword?}
+
+   :command/paste
+   {:doc "Text pasted into the new-task field. Several lines become
+  several tasks."
+    :schema [:tuple [:= :command/paste]]}
+
+   ;; Key presses, as the shell describes them to the core
+
+   :key/name
+   {:doc "The key's name as the browser gives it, such as \"z\" or
+  \"Enter\"."
+    :schema string?}
+
+   :key/ctrl
+   {:doc "True when Control was held."
+    :schema boolean?}
+
+   :key/meta
+   {:doc "True when Command (macOS) or the Windows key was held."
+    :schema boolean?}
+
+   :key/alt
+   {:doc "True when Alt (Option on macOS) was held."
+    :schema boolean?}
+
+   :key/shift
+   {:doc "True when Shift was held."
+    :schema boolean?}})

@@ -55,6 +55,8 @@ Only what is needed to iterate on the UI.
       Cross-check with the Event Timing API. A development overlay shows the last act against V12's 0.1 s.
       Keep the timings in a performance log, apart from the fact log, exported with it.
       A recorded morning of acts can be replayed on the Pi and an old MacBook as a repeatable load test.
+      Begun 2026-10-18: each key act is timed from the key press to the next painted frame, and the footer shows it, flagged above 0.1 s.
+      Still to do: the Event Timing cross-check, the performance log, and the replay.
 - [ ] **Drawing library,** for the displays that are not lists or tables (V5, V17): D3, Vega-Lite, or plain SVG from hiccup.
   Choose when the first such display is needed, not before.
 - [x] **State.** One atom in `sonouchi.app`, holding an immutable value. The ratchet counts it.
@@ -138,8 +140,10 @@ Each goes through section 2.
 - [ ] **The frame** (open). How the working set and the action are chosen.
       One candidate is a query, then an action, then a display for that action (`ux-research-visual.md`, "The concept being designed").
       Not fixed yet: decide by trying it on the first two or three parts.
-- [ ] **The stand-up pass (I7).** One key per task: worked on yesterday, started, finished, waiting (with a reason), replaced.
 - [ ] **Quick entry (I4).** A task can be just a title. Everything else is added later, when it pays.
+      First, because with no seed data the log is empty until tasks can be added.
+      Designed and built on 2026-10-18; in trial from 2026-10-19 (`notes/2026-10-18-quick-entry.md`).
+- [ ] **The stand-up pass (I7).** One key per task: worked on yesterday, started, finished, waiting (with a reason), replaced.
 - [ ] **The ranked list (I2).** Flat, ranked and searchable. No nesting.
       Moves are made by key (up, down, to the top, below a named task) and by drag for short moves.
 - [ ] **Reframing in one act (I3).** "Replace this with these", plus rename, split and merge.

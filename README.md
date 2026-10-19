@@ -245,6 +245,7 @@ Tools outside these files, as last checked:
     TODO.md                 the plan
     ux-research.md          the workflow, the data, design ideas I1-I10
     ux-research-visual.md   perception and interaction, rules V1-V17
+    notes/                  design records, trials and friction logs
     src/sonouchi/core/      the pure core, in .cljc: views, actions
     src/sonouchi/app.cljs   the shell: the one atom, rendering
     test/                   tests, in .cljc, run on the JVM and Node
