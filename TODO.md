@@ -58,10 +58,19 @@ Only what is needed to iterate on the UI.
 - [ ] **Drawing library,** for the displays that are not lists or tables (V5, V17): D3, Vega-Lite, or plain SVG from hiccup.
   Choose when the first such display is needed, not before.
 - [x] **State.** One atom in `sonouchi.app`, holding an immutable value. The ratchet counts it.
-- [ ] **The in-browser data set is a log of facts.** Each act appends a fact with its time, as soonish will.
+- [x] **The in-browser data set is a log of facts.** Each act appends a fact with its time, as soonish will.
   Views are pure functions of the log, so moving to soonish later changes where the log is kept, not the UI.
-- [ ] **Keeping the data.** Browser storage can be cleared. Save the log to the browser and export it to an EDN file, and import it back.
-- [ ] **Seed data.** Import the owner's real tasks from GitHub Projects, for example with `gh`, so the prototype is tried on real work from the first day.
+  **Decided 2026-10-18: maps all the way down.** A fact is a map patch: the attributes of one entity that an act changed.
+  An entity's current map is its patches merged in order. Not datoms: they convert mechanically if soonish ever needs them (section 4).
+  Built in `sonouchi.core.log`:
+  - the log is a vector of acts; an act has `:act/id`, `:act/at`, `:act/action` and `:act/patches`
+  - ids are random UUIDs, made by the shell, so exported logs can be merged without clashes
+  - `:act/by` is left out while there is one user: an act without it was made by the owner
+  - a value in a patch replaces the old one, sets included; `:patch/retract` removes attributes
+  - undo appends an act whose patches put back the values from before (`undo-patches`); it has no key or button yet
+- [x] **Keeping the data.** The log is saved in the browser's storage on every change, and exported to and imported from an EDN file.
+      An import replaces the log, after keeping the old one in the browser's storage. A saved log that cannot be read is kept aside, not overwritten.
+- **No seed data** (decided 2026-10-18). The owner enters tasks by hand, which also tests how well adding tasks works.
 - [ ] **Estimates made in the prototype** are marked as prototype data.
       They count for design 3 only if the estimate question was already in its final wording (section 4).
 - [x] **The pure core in `.cljc`,** with tests on the JVM and on Node, so that it can move to soonish unchanged.
