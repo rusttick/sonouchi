@@ -11,12 +11,13 @@ Nothing is decided unless it is under "Decided".
 - [ux-research.md](ux-research.md): the workflow, the data it needs, and design ideas I1 to I10.
 - [ux-research-visual.md](ux-research-visual.md): perception and interaction, and rules V1 to V17.
 
-## Where things stand (2026-10-18)
+## Where things stand (2026-10-20)
 
 - Section 1, the prototype, is done apart from the timing log, the drawing library and prototype estimates, each of which waits for something.
-- Quick entry, the first part, is built and in trial from 2026-10-19. Add to its friction log: `notes/2026-10-18-quick-entry.md`.
-- Next: design the stand-up pass (section 3) with the steps in section 2.
-  It needs the first task attributes beyond the title, and a first answer to the frame: how the tasks to act on are chosen.
+- Quick entry, the first part, is built. Its trial is paused: there is too little UI yet to be worth entering real tasks (`notes/2026-10-18-quick-entry.md`).
+- Next: the sprint session (`notes/2026-10-20-board.md`), in review with the owner: one frame with a query bar,
+  the stand-up on a board whose columns are computed from design 3's facts, and every other change as a replacement of N tasks by M.
+  The search index it uses is built (`sonouchi.core.search`). The new facts it needs are listed there for section 4.
 
 ## Decided
 
@@ -47,6 +48,11 @@ Nothing is decided unless it is under "Decided".
 - **One user on a laptop.** No simultaneous editing, and no CRDTs.
 - **Sign-in later, perhaps:** Google OAuth through a proxy in front, so that the app never handles sign-in itself.
 - **The boss's Gantt chart comes after the owner's UI works.**
+- **Rough out first, then try** (decided 2026-10-20). One part alone is not enough to use on real work.
+  Parts are roughed out through section 2's steps 1 to 8 until there is enough to use, and then tried together.
+- **Japanese input is not a requirement** (decided 2026-10-20). Keep it working where that costs nothing, but never wait on it.
+- **Filtering hides what does not match** (decided 2026-10-20). Dimming cannot work when a column is many screens long.
+  The order of what is left is kept, and clearing the filter restores the whole board. This is how V6 is read for filters.
 
 ## 1. A prototype that can be changed quickly
 
@@ -147,6 +153,7 @@ Each goes through section 2.
 - [ ] **The frame** (open). How the working set and the action are chosen.
       One candidate is a query, then an action, then a display for that action (`ux-research-visual.md`, "The concept being designed").
       Not fixed yet: decide by trying it on the first two or three parts.
+      First answer, 2026-10-20: the board, where typing in a column's field is the query and Enter is the action (`notes/2026-10-20-board.md`).
 - [ ] **Quick entry (I4).** A task can be just a title. Everything else is added later, when it pays.
       First, because with no seed data the log is empty until tasks can be added.
       Designed and built on 2026-10-18; in trial from 2026-10-19 (`notes/2026-10-18-quick-entry.md`).

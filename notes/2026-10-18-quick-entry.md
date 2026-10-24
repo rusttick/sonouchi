@@ -87,6 +87,9 @@ Known already: after a redo, the restored tasks are not marked ▶.
 ### Friction log
 
 - 2026-10-18: (start)
+- 2026-10-20: trial paused. Too little UI yet to be worth entering real
+  tasks. Entering tasks moves to the board (`notes/2026-10-20-board.md`).
+  Japanese input is no longer a requirement (`TODO.md`, "Decided").
 
 ## 10. The verdict
 
