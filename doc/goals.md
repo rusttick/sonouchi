@@ -1,0 +1,179 @@
+# Goals
+
+## What sonouchi is
+
+sonouchi is the browser client for soonish, the project estimation
+server. soonish's `doc/design3.md` is the theory: forecasts of when
+work will finish, learned from a record of estimates and outcomes,
+built up in steps. design3 leaves one thing out on purpose: display
+and interaction. That is sonouchi's job.
+
+So sonouchi is where the owner enters tasks, estimates and
+dependencies, records what actually happened, and sees the schedule
+and the forecast. The two repositories sit side by side, and sonouchi
+never changes soonish.
+
+## The question it answers
+
+**When will the tasks that I and my coworkers care about be finished,
+and how sure is that?**
+
+Everything sonouchi does either answers this question or keeps the
+record that answers it. A feature that does neither waits until one
+of them needs it.
+
+## Who it is for
+
+One person, the owner, who enters every task and every estimate and is
+the only one who reads the results. Coworkers are told dates; they do
+not use the tool. Other users come later, if at all.
+
+## The work it serves
+
+The owner does research. The work is scattered across many tasks, and
+it keeps changing shape: about one task in ten survives unchanged from
+backlog to done. New learning replaces a task, usually with several
+smaller ones in a new framing.
+
+The team holds a stand-up each morning at a whiteboard of post-its.
+Much of the work happens away from any computer. sonouchi is used in
+short sessions, chiefly just after the stand-up, and is not left open
+while working.
+
+## What it must do, in order
+
+sonouchi follows design3's development path. As design3 requires,
+each version is usable on its own, and records what the next one
+needs.
+
+### Version 0: design3 Step 0, with a face
+
+1. **Enter a task with its estimate and what it waits for.** The
+   estimate is asked before the task starts, in design3's words: *the
+   number of working days you think is equally likely to be too high
+   or too low.* It is typed into an empty field, and no other estimate
+   is shown first. A task without an estimate may be entered, but it
+   cannot be forecast, and design3 cannot learn from it.
+2. **See the schedule:** each task's dates and the critical path,
+   computed by the critical path method from the estimates. In
+   design3's running example, A 0–3, B 3–8, C 3–7, D 8–10, E 10–13,
+   with A, B, D, E critical. How to show this is the main open design
+   question. It is settled by drawing two or three candidates on the
+   running example, such as a Gantt chart with the critical path
+   marked, a layered dependency drawing with dates, and PlanningLines
+   (Aigner 2005), and choosing among them by the display rules and the
+   research in [ux-design.md](ux-design.md).
+3. **Record what happened, one act at a time:** a start, a finish, the
+   days worked, and waits with their reason. The stand-up board in
+   [ux-journey.md](ux-journey.md) is how this is done. Once a task has
+   an actual date, it replaces the computed one, and the schedule is
+   computed again.
+4. **Replace tasks** when the work changes shape: N old tasks by M new
+   ones, in one act. Each new task is asked for a fresh estimate.
+5. **Check for duplicates:** a query bar that filters the tasks by the
+   words of their titles, so that a task is not entered twice.
+
+### Version 1: design3 Step 1
+
+6. **See the forecast:** the finish of the project, and of any task,
+   as a distribution, from the team's history. It is shown as a
+   quantile dotplot with the P50 and P80 marked (Kay 2016, Fernandes
+   2018), and the probability of finishing by a given date. The owner's
+   own estimate is shown beside the forecast, and is never silently
+   replaced (design3, Step 1).
+7. **Keep every forecast shown,** so that it can be scored against the
+   outcome (design3, rule 4).
+
+Later versions follow design3's later steps, when the data justifies
+them.
+
+## What it records, and why
+
+design3 learns from estimates made before work started, and from how
+long the work then took. So sonouchi's main product is a clean record.
+Every act is kept as a fact with its time, never edited in place
+(design3, rule 3). Undo appends a fact too.
+
+For each task, the record holds:
+
+- its title, and each correction of the wording
+- its estimate, always in working days, with the unit stored with the
+  number, and the time it was made. The unit is fixed because the unit
+  changes the estimate (Jørgensen 2015), and design3 can compare only
+  estimates asked the same way. An estimate counts only if it was made
+  before the task started; later ones are kept as revisions
+- the tasks it waits for
+- when it started and finished, as days
+- which days the owner worked on it, recorded at the stand-up. Effort
+  is counted in days worked, never in hours
+- when it waited on something outside the owner's control, on whom,
+  and why (design3's reasons, used in its Step 6)
+- when it was replaced, and by which tasks
+
+There is no seed data; the owner enters every task by hand.
+
+## Open questions for design3
+
+- **A replaced task's estimate.** It never gets an outcome. Is it
+  censored, left out, or compared with the total of its replacements?
+  The record keeps what all three need, and Step 1 chooses by
+  out-of-time score (design3, 3.1).
+- **Where the schedule is computed.** soonish's forward pass is in
+  `src/soonish/core/schedule.clj`. Until there is a server, the
+  browser needs it too. It could be shared as `.cljc`, or copied with
+  a check that keeps the copies in step. This blocks version 0, and is
+  the owner's to decide, because it is about code shared between the
+  repositories.
+
+The rest are in [architecture.md](architecture.md), "What soonish will
+need".
+
+## How it is made
+
+- **The research decides, not the owner's preference.** The owner,
+  like most people, does not estimate well or meet deadlines easily,
+  and sonouchi is there to help with that. So design questions are
+  settled from the research and design3, and the grounds are written
+  down. Where the research is silent, sonouchi records what design3
+  needs to decide later by out-of-time score.
+- **In the browser alone, first.** The record is held in the browser,
+  with no server, until the interface shows what soonish must provide.
+- **Sketch first, then research.** Each display is chosen by drawing
+  candidates on the running example and comparing them. Research is
+  looked up to answer a specific question about a sketch. The rules in
+  [ux-design.md](ux-design.md) are a checklist for a sketch, not
+  steps to finish before one.
+- **Tried by the owner on their own work,** as soon as version 0 can
+  be used. What the trials show is written back into the design.
+- **The same language and rules as soonish.** ClojureScript, values
+  and pure functions, a thin shell around a pure core, and facts
+  appended rather than overwritten ([CONTRIBUTING.md](../CONTRIBUTING.md)).
+
+## Parked
+
+These wait until version 1 is in use, and then only if the question
+above needs them:
+
+- the ranked backlog, and how a manual order is recorded
+- requests: who asked, which tasks serve them, and their forecasts
+- facets, suggestions and saved queries
+- stale tasks fading, and lapses showing
+- a time view for the owner's boss
+- predictions by the keystroke-level model, and the performance log
+- Japanese text, beyond what works at no cost
+- a settings screen, until the first setting is needed
+
+The research behind them stays in
+[research-workflow.md](research-workflow.md) and
+[research-visual.md](research-visual.md).
+
+## What it is not
+
+- not a work companion left open on the desktop
+- not a timesheet
+- not a tree: a task can wait for several tasks, a merge has several
+  predecessors, and dependencies form a graph, so there is no nested,
+  collapsible outline
+- not for several people editing at once: one user, on a laptop
+- not responsible for signing in. If it ever needs sign-in, a proxy in
+  front handles it

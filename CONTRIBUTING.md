@@ -28,17 +28,13 @@ simple.
 
 ## The working loop
 
-1. Read `TODO.md` for what to do next, and its section 2 for how each
-   part of the interface is designed. The research behind it is in
-   `ux-research.md` and `ux-research-visual.md`. The model the app
-   serves is `../soonish/doc/design3.md`, Step 0.
-2. Write a pure function in a core namespace, as `.cljc`, and a test
+-  Write a pure function in a core namespace, as `.cljc`, and a test
    that calls it with plain values.
-3. Run `bin/check`. It runs, in order: format, lint, guard, the tests
+-  Run `bin/check`. It runs, in order: format, lint, guard, the tests
    on the JVM, both builds, and the tests on Node. It must pass before
    you finish. If you work as a Claude Code agent, the hooks lint each
    file you edit and run `bin/check` when you stop.
-4. If formatting fails, run `bin/fmt`.
+-  If formatting fails, run `bin/fmt`.
 
 When a check fails, fix the code. Never loosen the check, suppress the
 warning, skip the test or weaken an assertion. If a check seems wrong,
@@ -113,8 +109,6 @@ exactly what you need and why.
 - `src/sonouchi/core/attrs.cljc`: every attribute, defined once.
 - `test/`: tests, mirroring `src/`, in `.cljc`.
 - `public/index.html`: the page. The builds write `public/js/`.
-- `TODO.md`, `ux-research.md`, `ux-research-visual.md`: the plan and
-  the research behind it.
 
 The core may require only other core namespaces and `clojure.math`,
 `clojure.set`, `clojure.string` and `clojure.walk`, which exist on both
@@ -229,10 +223,6 @@ platforms. **guard**
 - **Every act is a fact.** An action that changes the record appends
   facts with their time; it never edits one in place. Undo appends a
   retraction. **review**
-- **The display rules.** Every display follows rules V1 to V17 in
-  `ux-research-visual.md`, Part 6. Check each one against the
-  checklist in `TODO.md`, section 2, before and after building it.
-  **review**
 - **Stable and deterministic.** The same state gives the same screen.
   Nothing on screen moves unless the owner moved it (V6). **tests**,
   where a view can be tested; **review** otherwise

@@ -9,9 +9,6 @@
   if the meaning changes, add a new name. Only the owner changes this
   file.
 
-  These are the prototype's attributes. Which of them soonish adopts is
-  decided later (TODO.md, section 4).
-
   :schema is written in Malli syntax. It is data, and nothing enforces
   it yet.")
 
