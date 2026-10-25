@@ -1,7 +1,8 @@
 (ns sonouchi.core.chain
-  "The chain behind one task: the tasks it comes after, directly or not,
-  laid out in layers from left to right with few crossings (Sugiyama
-  1981), for the schedule's drawing (ux-journey, \"The schedule\").
+  "The dependency graph of tasks laid out in layers from left to right
+  with few crossings (Sugiyama 1981), for the plan's drawing (ux-journey,
+  \"The plan\"): either the whole graph of linked tasks, or the chain
+  behind one task.
 
   tasks is a map from task id to a map with :task/after. The layout is
   deterministic: ties are broken by id."
@@ -25,6 +26,16 @@
                           before)))
             #{id}))
 
+(defn linked
+  "The ids of the tasks that come after a task, or that a task comes
+  after. Ids in :task/after that are not tasks are ignored."
+  [tasks]
+  (set (for [[id {befores :task/after}] tasks
+             before befores
+             :when (contains? tasks before)
+             i [id before]]
+         i)))
+
 (defn- depths
   "Task id to its layer: 0 for a task with nothing behind it, else one
   more than the deepest task it comes after."
@@ -35,13 +46,20 @@
           {}
           order))
 
+(defn- subgraph
+  "tasks restricted to ids, each with only the :task/after links among
+  ids."
+  [tasks ids]
+  (into {} (for [i ids]
+             [i {:task/after (set (filter ids (get-in tasks [i :task/after])))}])))
+
 (defn depth
   "Task id to its depth in the dependency graph of tasks: 0 for a task
   that comes after nothing, else one more than the deepest task it comes
   after. Empty when the graph has a cycle. Ids in :task/after that are
   not tasks are ignored."
   [tasks]
-  (let [sub (update-vals tasks (fn [t] {:task/after (set (filter tasks (:task/after t)))}))]
+  (let [sub (subgraph tasks (set (keys tasks)))]
     (if-let [order (:schedule/order (schedule/topological-order sub))]
       (depths sub order)
       {})))
@@ -62,24 +80,37 @@
   (let [n (count layer)]
     (into {} (map-indexed (fn [i id] [id (/ (+ i 0.5) n)]) layer))))
 
-(defn layout
-  "The chain behind id: {:chain/layers [[id ...] ...], the tasks in
-  layers left to right with id alone in the last, and :chain/edges
-  #{[before after] ...}, the comes-after links among them}. Only the
-  tasks in tasks are drawn."
-  [tasks id]
-  (let [ids (behind tasks id)
-        sub (into {} (for [i ids]
-                       [i {:task/after (set (filter ids (get-in tasks [i :task/after])))}]))
-        order (:schedule/order (schedule/topological-order sub))
+(defn- layered
+  "The layout of sub, a subgraph: {:chain/layers [[id ...] ...], the
+  tasks in layers left to right, and :chain/edges #{[before after] ...},
+  the comes-after links among them}. Empty layers when sub has a cycle."
+  [sub]
+  (let [order (:schedule/order (schedule/topological-order sub))
         depth-of (depths sub order)
         by-depth (group-by depth-of order)
         layers (reduce (fn [layers d]
                          (let [placed (into {} (map positions layers))]
                            (conj layers (order-layer sub placed (by-depth d)))))
                        []
-                       (range (inc (apply max 0 (vals depth-of)))))]
+                       (range (inc (apply max -1 (vals depth-of)))))]
     {:chain/layers layers
      :chain/edges (set (for [[after {befores :task/after}] sub
                              before befores]
                          [before after]))}))
+
+(defn layout
+  "The chain behind id: {:chain/layers [[id ...] ...], the tasks in
+  layers left to right with id alone in the last, and :chain/edges
+  #{[before after] ...}, the comes-after links among them}. Only the
+  tasks in tasks are drawn."
+  [tasks id]
+  (layered (subgraph tasks (behind tasks id))))
+
+(defn graph
+  "The whole graph of linked tasks: {:chain/layers [[id ...] ...], the
+  tasks that come after a task or that a task comes after, in layers
+  left to right, and :chain/edges #{[before after] ...}, every
+  comes-after link among them}. A task with no links is left out, and
+  the layers are empty when the graph has a cycle."
+  [tasks]
+  (layered (subgraph tasks (linked tasks))))

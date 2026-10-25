@@ -253,7 +253,9 @@ Settled, and written into design3's Step 0:
   wrong one stays in the log. Undoing an old act never overwrites
   newer work ([architecture-log.md](architecture-log.md)), so undo
   serves when the wrong act is recent. No further mechanism until a
-  trial asks for one.
+  trial asks for one; the trial of 2026-10-25 did not, though it found
+  that the undo keys were shown nowhere, which the footer now fixes
+  (ux-journey, "The frame").
 
 Still open:
 
@@ -274,9 +276,10 @@ Still open:
   inherits its start.
 - **Order.** How a manual order is recorded as appended facts, with an
   exact order only near the top.
-- **Requests.** Who asked, in what words, any promise, each report
-  back; which tasks serve which requests; and the requests the owner
-  makes, which end waits. Is a request anything with an asker?
+- **Requests.** Designed in [ux-requests.md](ux-requests.md), not yet
+  built: a request has an asker, words and a day; a promise is an
+  entity about a request or a wait; a task serves a set of requests.
+  Still open there: whether a wait and a request become one thing.
 - **Relations.** Which were used: comes after, part of, serves,
   replaced by. Does a task with parts have an estimate of its own?
 - **Tags and attributes.** How often each is used. Bergman 2013

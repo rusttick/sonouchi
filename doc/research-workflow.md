@@ -341,6 +341,11 @@ a list.
 
 ## Where the research is thin
 
+- No study in this document compares ways of choosing, day by day,
+  among competing commitments to other people. Noted 2026-10-25, not
+  yet searched; the nearest literatures are implementation intentions
+  (Gollwitzer, which Masicampo 2011 builds on) and interruption and
+  working spheres (González 2004, section 1).
 - No controlled study found of Gantt charts against network diagrams
   or tables for schedule comprehension, in five searches, the last on
   2026-10-25.

@@ -30,6 +30,17 @@
             :chain/edges #{[:A :B] [:A :C] [:B :C]}}
            (chain/layout tasks :C)))))
 
+(deftest the-whole-graph
+  (is (= #{:A :B :C :D :E} (chain/linked running-example)))
+  (is (= {:chain/layers [[:A] [:B :C] [:D] [:E]]
+          :chain/edges #{[:A :B] [:A :C] [:B :D] [:C :D] [:D :E]}}
+         (chain/graph running-example)))
+  (is (= {:chain/layers [[:A] [:B]] :chain/edges #{[:A :B]}}
+         (chain/graph {:A {} :B {:task/after #{:A}} :alone {} :after-gone {:task/after #{:gone}}}))
+      "tasks with no links are left out")
+  (is (= {:chain/layers [] :chain/edges #{}} (chain/graph {:A {} :B {}})))
+  (is (= [] (:chain/layers (chain/graph {:A {:task/after #{:B}} :B {:task/after #{:A}}}))) "a cycle"))
+
 (deftest ids-that-are-not-tasks-are-left-out
   (is (= {:chain/layers [[:B]] :chain/edges #{}}
          (chain/layout {:B {:task/after #{:gone}}} :B))))

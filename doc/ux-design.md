@@ -184,7 +184,8 @@ A task that appears in two groups looks identical in both. Why: Okoe
   words of titles (V15). No study compares a blocked column with a
   mark in place; the Kanban evidence is descriptive (Ahmad 2018,
   workflow 5), so this is the rules' choice, and a trial can overturn
-  it. The whiteboard may keep its blocked column; a post-it there
+  it. The trial of 2026-10-25 did not: the owner did not miss the
+  column. The whiteboard may keep its blocked column; a post-it there
   maps to a marked card here. A wait on a person is
   usually a request the owner made to them: later, waits and the
   requests made to the owner become one kind of thing, recorded as
@@ -199,7 +200,8 @@ A task that appears in two groups looks identical in both. Why: Okoe
   workflow 10), and hiding it at the moment of typing does not undo
   having seen it. So the board does not show the number: a card says
   only whether the task has an estimate, which is what the board
-  needs (V3, V8). The schedule shows the number, because dates are
+  needs (V3, V8); the trial of 2026-10-25 found the number was not
+  missed there. The plan shows the number, because dates are
   what it is for, and a re-estimate made there is anchored; it is
   recorded as a revision, and design 3 scores first estimates and
   revisions apart. The comparison that teaches is design 3's scoring

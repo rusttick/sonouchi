@@ -17,7 +17,7 @@
   100)
 
 (def ^:private screen-names
-  {:stand-up "STAND-UP" :replace "REPLACE" :schedule "SCHEDULE" :record "RECORD"})
+  {:stand-up "STAND-UP" :replace "REPLACE" :schedule "PLAN" :record "RECORD"})
 
 (def ^:private reason-names
   {:person "a person" :outside-party "an outside party" :not-in-plan "not in the plan"})
@@ -49,8 +49,8 @@
                   "started, finished, worked on, waiting. Replace, add or drop tasks.")}
    {:screen :schedule
     :command :command/show-schedule
-    :title "Schedule"
-    :purpose (str "When will each task finish, and which tasks set the last date? "
+    :title "Plan"
+    :purpose (str "What comes after what, when will each task finish, and which tasks set the last date? "
                   "Estimate tasks, and say which come after which.")}
    {:screen :record
     :command :command/show-record
@@ -133,12 +133,17 @@
      [:li (str message (when (seq path) (str " at " (pr-str path))))])])
 
 (defn- footer
-  [{:state/keys [last-act-ms]}]
+  "How long the last act took (V12), and the keys that undo and redo it
+  (V11, V13), once there is an act."
+  [{:state/keys [last-act-ms platform]}]
   [:footer
    (when last-act-ms
-     (if (< slow-ms last-act-ms)
-       [:span.slow (str "last act " last-act-ms " ms: over 0.1 s")]
-       [:span (str "last act " last-act-ms " ms")]))])
+     (list
+      (if (< slow-ms last-act-ms)
+        [:span.slow (str "last act " last-act-ms " ms: over 0.1 s")]
+        [:span (str "last act " last-act-ms " ms")])
+      " · "
+      (hint platform [[:command/undo "undo"] [:command/redo "redo"]])))])
 
 ;; Cards and their fields
 
@@ -278,27 +283,39 @@
 
 ;; Stage 5: the schedule
 
-(defn- chain-drawing
-  "The chain behind id, as SVG: layers left to right, a line for each
-  comes-after link."
-  [entities id]
-  (let [{:chain/keys [layers edges]} (chain/layout (board/tasks entities) id)
+(defn- short-title
+  [title]
+  (if (< 22 (count title)) (str (subs title 0 21) "…") title))
+
+(defn- graph-drawing
+  "The whole graph of the unfinished tasks that are linked by comes
+  after, as SVG: layers left to right, a line for each link, in full
+  ink where both ends are critical (V3), and under each title the day
+  it finishes, or that it has no estimate. The cursor's task is bold.
+  Nil when no task comes after another."
+  [{:keys [entities cursor times critical today]}]
+  (let [tasks (into {} (remove (fn [[_ t]] (:task/finished t)) (board/tasks entities)))
+        {:chain/keys [layers edges]} (chain/graph tasks)
         dx 170
-        dy 32
+        dy 44
         at (into {} (for [[x layer] (map-indexed vector layers)
                           [y i] (map-indexed vector layer)]
                       [i [(+ 10 (* x dx)) (+ 20 (* y dy))]]))
         width (+ 10 (* dx (count layers)))
         height (+ 20 (* dy (apply max 1 (map count layers))))]
-    [:svg.chain {:viewBox (str "0 0 " width " " height)
-                 :width width :height height}
-     (for [[from to] (sort-by str edges)
-           :let [[x1 y1] (at from) [x2 y2] (at to)]]
-       [:line {:x1 (+ x1 150) :y1 (- y1 5) :x2 x2 :y2 (- y2 5)}])
-     (for [[i [x y]] at]
-       [:text {:x x :y y :class (when (= i id) "here")}
-        (let [title (:task/title (entities i))]
-          (if (< 22 (count title)) (str (subs title 0 21) "…") title))])]))
+    (when (seq layers)
+      [:svg.chain {:viewBox (str "0 0 " width " " height)
+                   :width width :height height}
+       (for [[from to] (sort-by str edges)
+             :let [[x1 y1] (at from) [x2 y2] (at to)]]
+         [:line {:x1 (+ x1 150) :y1 (- y1 5) :x2 x2 :y2 (- y2 5)
+                 :class (when (and (critical from) (critical to)) "critical")}])
+       (for [[i [x y]] at
+             :let [finish (:schedule/finish-day (times i))]]
+         [:g {:class (when (= i cursor) "here")}
+          [:text.title {:x x :y y} (short-title (:task/title (entities i)))]
+          [:text.when {:x x :y (+ y 14)}
+           (if finish (days/label (board/last-day today finish)) "no estimate")]])])))
 
 (def ^:private schedule-keys
   "The keys the schedule's cursor takes (ux-journey, Stage 5)."
@@ -392,8 +409,11 @@
      (when cursor
        [:div.behind
         [:p.keys (hint platform schedule-keys)]
-        [:h3 (str (:task/title (entities cursor)) " comes after")]
-        (chain-drawing entities cursor)])]))
+        [:h3 "What comes after what"]
+        (or (graph-drawing view)
+            [:p.empty "No task comes after another yet: mark the tasks it comes after with "
+             [:kbd (keys/label platform :command/mark)] ", then "
+             [:kbd (keys/label platform :action/set-after)] " on the task."])])]))
 
 ;; The record: export and import
 

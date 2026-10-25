@@ -80,16 +80,16 @@
     (let [closed (page empty-state)
           opened (page (run empty-state [:command/toggle-menu]))
           titles (keep :title (filter map? (tree-seq coll? seq closed)))]
-      (is (some #{"Choose a view: 1 Stand-up · 2 Schedule · 3 Record"} titles) "the hover text")
+      (is (some #{"Choose a view: 1 Stand-up · 2 Plan · 3 Record"} titles) "the hover text")
       (let [button (first (filter #(and (vector? %) (= :button.app (first %)))
                                   (tree-seq coll? seq closed)))]
         (is (some #{"STAND-UP"} (texts button)) "the screen's name is part of the menu button"))
       (is (some #{[:command/toggle-menu]} (handlers closed)))
       (is (not (some #{[:command/show-schedule]} (handlers closed))) "no buttons for the screens")
-      (is (not (some #{"Schedule"} (texts closed))))
-      (is (= ["1" "Stand-up" "2" "Schedule" "3" "Record"]
-             (filter #{"1" "2" "3" "Stand-up" "Schedule" "Record"} (texts opened))))
-      (is (some #(re-find #"^When will each task finish" %) (texts opened)))
+      (is (not (some #{"Plan"} (texts closed))))
+      (is (= ["1" "Stand-up" "2" "Plan" "3" "Record"]
+             (filter #{"1" "2" "3" "Stand-up" "Plan" "Record"} (texts opened))))
+      (is (some #(re-find #"^What comes after what" %) (texts opened)))
       (is (some #{[:command/show-stand-up]} (handlers opened)))
       (is (some #{[:command/show-schedule]} (handlers opened)))
       (is (= 1 (count (nodes-with-class opened "current"))) "the screen shown")))
@@ -185,17 +185,33 @@
                        [:command/show-schedule] [:command/cursor b]))
         hiccup (page state)
         shown (set (texts hiccup))]
-    (is (contains? shown "SCHEDULE"))
+    (is (contains? shown "PLAN"))
     (is (contains? shown "finishes Wed Nov 4") "A Mon to Wed, B Thu to the next Wed")
     (is (contains? shown "Mon Oct 26 – Wed Oct 28"))
     (is (contains? shown "Thu Oct 29 – Wed Nov 4"))
     (is (contains? shown "3 wd"))
     (is (contains? shown "after A"))
-    (is (= 2 (count (nodes-with-class hiccup "critical"))))
-    (is (contains? shown "B comes after"))
+    (is (= 2 (count (filter #(= :tr (first %)) (nodes-with-class hiccup "critical")))) "both rows are critical")
+    (is (contains? shown "What comes after what"))
     (is (contains? shown "Not estimated"))
     (is (contains? shown "C"))
-    (is (some #(= :svg.chain (first %)) (filter vector? (tree-seq coll? seq hiccup))) "the chain is drawn")
+    (testing "the graph is drawn: the linked tasks with their finish days, the cursor's task marked"
+      (let [svg (first (filter #(and (vector? %) (= :svg.chain (first %))) (tree-seq coll? seq hiccup)))
+            t (for [node (tree-seq coll? seq svg)
+                    :when (and (vector? node) (#{:text.title :text.when} (first node)))]
+                (last node))]
+        (is (some? svg))
+        (is (= ["A" "Wed Oct 28" "B" "Wed Nov 4"] t) "C has no link, so it is not drawn")
+        (is (= 1 (count (nodes-with-class svg "here"))))
+        (is (= 1 (count (nodes-with-class svg "critical"))) "the one edge is on the critical path")))
+    (testing "an unestimated linked task is drawn, saying so"
+      (let [c (titled state "C")
+            t (texts (page (run state [:command/show-stand-up] [:command/cursor b] [:command/mark]
+                                [:command/cursor c] [:action/set-after] [:command/show-schedule])))]
+        (is (some #{"no estimate"} t))))
+    (testing "with no links, the drawing says how to make one"
+      (let [t (texts (page (run (add empty-state "A") [:command/show-schedule])))]
+        (is (some #{"No task comes after another yet: mark the tasks it comes after with "} t))))
     (testing "a mark shows on its row"
       (let [marked (page (run state [:command/cursor a] [:command/mark]))]
         (is (= 1 (count (nodes-with-class marked "marked"))))
@@ -235,7 +251,12 @@
             (texts (page (assoc empty-state :state/problems
                                 [{:problem/path [0 :act/at] :problem/message "an act needs a time"}])))))
   (is (some #{"last act 250 ms: over 0.1 s"} (texts (page (assoc empty-state :state/last-act-ms 250)))))
-  (is (some #{"last act 12 ms"} (texts (page (assoc empty-state :state/last-act-ms 12))))))
+  (is (some #{"last act 12 ms"} (texts (page (assoc empty-state :state/last-act-ms 12)))))
+  (testing "the footer shows the undo and redo keys once there is an act (V11)"
+    (let [after (page (assoc empty-state :state/last-act-ms 12))]
+      (is (= ["⌘Z" "⇧⌘Z"] (filter #{"⌘Z" "⇧⌘Z"} (key-caps after))))
+      (is (some #{" undo"} (texts after))))
+    (is (not (some #{" undo"} (texts (page empty-state)))) "nothing to undo yet")))
 
 (deftest handlers-are-data
   (is (every? vector? (handlers (page (add empty-state "one")))))

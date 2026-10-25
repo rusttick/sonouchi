@@ -178,7 +178,7 @@ task has an estimate, and the schedule shows the number.
   node-link chain. A Gantt chart has no evidence for it and some against (workflow 6), and
   PlanningLines need slack, which is Step 0's backward pass and worth having anyway. Settled on
   2026-10-25: a dated table with the critical path marked, and the chain behind the selected task
-  drawn beside it, sketched in text on the running example in `ux-journey.md`, "The schedule". A
+  drawn beside it, sketched in text on the running example in `ux-journey.md`, "The plan". A
   Gantt chart and PlanningLines wait until a trial asks for them, since the research is thin here.
 - **Corrections.** Undo appends a retraction, and undoing an old act never overwrites newer work
   (`architecture-log.md`). So correcting one old fact is already one act: a new patch for the task,

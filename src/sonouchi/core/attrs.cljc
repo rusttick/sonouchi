@@ -49,9 +49,9 @@
    ;; The screen's own state, in the state map and not in the log
 
    :state/screen
-   {:doc "Which screen is shown: :stand-up, :replace, :schedule, or
-    :record, where the log is exported and imported."
-    :schema [:enum :stand-up :replace :schedule :record]}
+   {:doc "Which screen is shown: :stand-up, :replace, :schedule,
+  :requests, or :record, where the log is exported and imported."
+    :schema [:enum :stand-up :replace :schedule :requests :record]}
 
    :state/menu-open
    {:doc "Present, and true, while the menu of screens is open, from a
@@ -74,6 +74,13 @@
    :state/marked
    {:doc "The ids of the marked tasks, for replacement or for comes
   after."
+    :schema [:set uuid?]}
+
+   :state/marked-requests
+   {:doc "The ids of the marked requests, so that v on a card can say
+  which requests its task serves. Kept apart from :state/marked, the
+  task marks, so that v on a request reads task marks and v on a card
+  reads request marks."
     :schema [:set uuid?]}
 
    :state/draft
@@ -109,11 +116,18 @@
     :schema map?}
 
    :field/kind
-   {:doc "What the open field is for: :title, :wait or :estimate."
-    :schema [:enum :title :wait :estimate]}
+   {:doc "What the open field is for: :title, :wait or :estimate on a
+  task; :request for a new request, :promise for a promised day, or
+  :request-words to correct a request's asker and words."
+    :schema [:enum :title :wait :estimate :request :promise :request-words]}
 
    :field/task
    {:doc "The id of the task the open field is on."
+    :schema uuid?}
+
+   :field/request
+   {:doc "The id of the request the open field is on, for :promise and
+  :request-words. Absent for a field on a task or for a new request."
     :schema uuid?}
 
    :field/text
@@ -158,6 +172,11 @@
   Step 0 records and its Step 2 needs. No screen in version 0 sets it."
     :schema keyword?}
 
+   :task/serves
+   {:doc "The set of requests the task serves. A task can serve several
+  (Bellotti 2004, value extension). Absent when it serves none."
+    :schema [:set uuid?]}
+
    ;; Estimates: an entity per estimate, so that every one is kept
 
    :estimate/task
@@ -197,6 +216,41 @@
 
    :wait/ended
    {:doc "The day the wait ended, as an ISO day. Absent while it lasts."
+    :schema string?}
+
+   ;; Requests: what someone asked of the owner (doc/ux-requests.md)
+
+   :request/asker
+   {:doc "Who asked, in the owner's words, such as \"Tanaka\". Never
+  blank."
+    :schema [:and string? [:fn #(re-find #"\S" %)]]}
+
+   :request/words
+   {:doc "What was asked, in the asker's words, short."
+    :schema string?}
+
+   :request/asked
+   {:doc "The day it was asked, as an ISO day."
+    :schema string?}
+
+   :request/closed
+   {:doc "The day the owner reported it done, or dropped it, as an ISO
+  day. Absent while the request is open."
+    :schema string?}
+
+   ;; Promises: an entity per promise, as estimates are, so that every
+   ;; promise is kept with the time it was made and a slipped promise
+   ;; is a new one beside the old
+
+   :promise/about
+   {:doc "The id of the request or the wait the promise is about. About
+  a request, it is the owner's promise to the asker; about a wait, the
+  other party's promise to the owner. The latest promise about a thing
+  is the one in force."
+    :schema uuid?}
+
+   :promise/day
+   {:doc "The day promised, as an ISO day."
     :schema string?}
 
    ;; Tasks, as the scheduler reads them. Days are working days counted
@@ -337,6 +391,31 @@
   set is empty. Not recorded if it would make a cycle."
     :schema keyword?}
 
+   ;; Actions of the requests screen (doc/ux-requests.md)
+
+   :action/add-request
+   {:doc "A new request entity, with its asker, words and the recording
+  day as :request/asked."
+    :schema keyword?}
+
+   :action/promise
+   {:doc "A new promise entity about a request or a wait, with its day."
+    :schema keyword?}
+
+   :action/set-serves
+   {:doc "Sets a task's whole :task/serves set, or retracts it when the
+  set is empty, as :action/set-after does for :task/after."
+    :schema keyword?}
+
+   :action/close-request
+   {:doc "Closes a request: sets :request/closed to the recording day."
+    :schema keyword?}
+
+   :action/correct-request
+   {:doc "Corrects a request's asker or words. The request, its
+  promises and its tasks are kept."
+    :schema keyword?}
+
    ;; Acts: one per thing the owner does that changes the record
 
    :act/id
@@ -467,6 +546,36 @@
    {:doc "Show the record screen (3), where the log is exported to a
     file and imported from one."
     :schema keyword?}
+
+   :command/show-requests
+   {:doc "Show the requests screen (4)."
+    :schema keyword?}
+
+   :command/open-request
+   {:doc "Open the field for a new request (n on the requests screen):
+  who and what, as \"Tanaka: the integrated system\"."
+    :schema keyword?}
+
+   :command/open-promise
+   {:doc "Open the promised-day field on the request under the cursor
+  (p on the requests screen), or on the open wait of the task under
+  the cursor (p on a waiting card)."
+    :schema keyword?}
+
+   :command/open-request-words
+   {:doc "Make the asker and words of the request under the cursor
+  editable (e on the requests screen)."
+    :schema keyword?}
+
+   :command/mark-request
+   {:doc "Mark the request under the cursor, or unmark it (x on the
+  requests screen)."
+    :schema keyword?}
+
+   :command/cursor-request
+   {:doc "Move the cursor to the request with this id, as a click on
+  its row does."
+    :schema [:tuple [:= :command/cursor-request] uuid?]}
 
    :command/toggle-menu
    {:doc "Open or close the menu of screens (a click on the mascot)."

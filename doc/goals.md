@@ -55,13 +55,13 @@ needs.
    or too low.* It is typed into an empty field, and no other estimate
    is shown first. A task without an estimate may be entered, but it
    cannot be forecast, and design3 cannot learn from it.
-2. **See the schedule:** each task's dates and the critical path,
-   computed by the critical path method from the estimates. In
-   design3's running example, A 0–3, B 3–8, C 3–7, D 8–10, E 10–13,
-   with A, B, D, E critical. It is shown as a table of dates with the
-   critical path marked, and the chain of tasks behind the selected
-   one drawn beside it, by cognitive fit and V17
-   ([ux-journey.md](ux-journey.md), "The schedule"). A Gantt chart
+2. **See the plan:** what comes after what, each task's dates and the
+   critical path, computed by the critical path method from the
+   estimates. In design3's running example, A 0–3, B 3–8, C 3–7,
+   D 8–10, E 10–13, with A, B, D, E critical. It is shown as a table
+   of dates with the critical path marked, and the whole dependency
+   graph drawn under it as a node-link diagram, by cognitive fit and
+   V17 ([ux-journey.md](ux-journey.md), "The plan"). A Gantt chart
    and PlanningLines (Aigner 2005) wait until a trial asks for them.
 3. **Record what happened, one act at a time:** a start, a finish, the
    days worked, and waits with their reason. The stand-up board in
@@ -72,6 +72,16 @@ needs.
    ones, in one act. Each new task is asked for a fresh estimate.
 5. **Check for duplicates:** a query bar that filters the tasks by the
    words of their titles, so that a task is not entered twice.
+
+### Requests, before version 1
+
+The trial of 2026-10-25 found that the owner could record the work but
+not reason about what it was for or what had been promised, so
+requests come off the parked list. The design is
+[ux-requests.md](ux-requests.md): who asked, in what words, what the
+owner promised, what others promised the owner, and which tasks serve
+each request, with a screen that says when each request will be done
+against what was promised.
 
 ### Version 1: design3 Step 1
 
@@ -153,7 +163,11 @@ These wait until version 1 is in use, and then only if the question
 above needs them:
 
 - the ranked backlog, and how a manual order is recorded
-- requests: who asked, which tasks serve them, and their forecasts
+- retrospective views of how the work evolved through replacements,
+  which the owner asked for in the trial of 2026-10-25; the record
+  already keeps `:task/replaced-by` for it
+- requests' forecasts, which are version 1's; the requests themselves
+  are designed in [ux-requests.md](ux-requests.md)
 - facets, suggestions and saved queries
 - stale tasks fading, and lapses showing
 - a time view for the owner's boss

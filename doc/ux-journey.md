@@ -81,7 +81,7 @@ The same on every screen (V9):
 
     🦝   STAND-UP   [ query     12 of 31 tasks ]   recording last working day, Fri Oct 23   [ earlier · ] later
 
-- **The action's name,** large (V10): STAND-UP, REPLACE, SCHEDULE or
+- **The action's name,** large (V10): STAND-UP, REPLACE, PLAN or
   RECORD.
 - **The query bar,** top centre. `/` moves to it. Typing filters every
   column at once to the tasks that match every typed word: a word of
@@ -126,7 +126,7 @@ The same on every screen (V9):
   not in a menu of its own, because it is state the owner needs in
   view whenever `s`, `f`, `w` or `b` is pressed (V8).
 - **The actions,** in a flat list that is always in the same order,
-  each with its key: `1` the stand-up board, `2` the schedule, `3` the
+  each with its key: `1` the stand-up board, `2` the plan, `3` the
   record, where the log is exported to a file and imported from one.
   Export and import are seldom used, so they are a screen of their own
   and not in the frame; the screen shows how many acts and tasks the
@@ -139,11 +139,16 @@ The same on every screen (V9):
   answers. A click on an entry, a second click on the button, a click
   anywhere else, or Escape closes it. The keys work whether
   the menu is open or not. The owner chose the menu over buttons
-  always on screen; V11 asks for keys shown on screen, so a trial
-  should check that the keys are still found. The replacement display
-  is opened from the board, not from this list.
+  always on screen; V11 asks for keys shown on screen. The trial of
+  2026-10-25 showed that the keys were still found: the owner forgot
+  none of them. The replacement display is opened from the board, not
+  from this list.
 - **The footer** shows how long the last act took, flagged above 0.1 s
-  (V12).
+  (V12), and beside it the keys that undo and redo it, `⌘Z` undo ·
+  `⇧⌘Z` redo. They are there and not by the cursor because they act on
+  the last act, not on a card, and the footer is where the last act is
+  reported. The trial showed the need: the keys were shown nowhere,
+  and the owner forgot they existed, against V11.
 - **Keys** are drawn as key caps wherever they are shown, each before
   what it does, as in `s` started. The research is silent on how a key
   is best marked; chosen because the trial showed that `[` and `]`
@@ -303,10 +308,19 @@ previous ones.
 If the result would make a cycle, nothing is recorded, and the frame
 shows which tasks form the cycle (Kahn 1962 detects it).
 
-### The schedule
+### The plan
 
-**The question.** When will each task finish, and which tasks set the
-date of the last one?
+**The question.** What comes after what, when will each task finish,
+and which tasks set the date of the last one?
+
+The screen was called "the schedule", and asked only the last two.
+The trial showed that the owner's question at this screen is the
+first: how the tasks hang together. A table of dates cannot answer it,
+and the chain behind one task showed a fraction of it. So the screen
+is now the plan, which is also this stage's name in the journey, and
+the whole dependency graph is drawn (below). The state keeps the name
+`:schedule` for the screen, and the scheduler keeps its name, since
+only the words on screen changed (accretion, CONTRIBUTING, 7).
 
 **What it shows.** Every task on the board that is not done is
 scheduled by the critical path method (design3, Step 0):
@@ -326,27 +340,40 @@ comes after it. These tasks are listed apart, in full ink, as "not
 estimated", because they are what the owner can fix now (V3, V8).
 
 **The display** is a table of dates with the critical path marked,
-and the chain behind the task under the cursor drawn beside it. The
-first question asks for exact values, and cognitive fit sends exact
-values to a table (Vessey 1991, visual 2.4). The second is a question
-about a path, which V17 sends to a small node-link drawing. A Gantt
-chart has no evidence for it and some against (workflow 6), and
-PlanningLines (Aigner 2005) show slack, which the owner has not asked
-about; both wait for a trial to ask for them. The research is thin
-here (workflow, "Where the research is thin"), so this is the choice
-the rules give, not a proven one.
+and under it the whole dependency graph drawn as a node-link diagram.
+The question of dates asks for exact values, and cognitive fit sends
+exact values to a table (Vessey 1991, visual 2.4). The question of
+what comes after what is about connectivity, and node-link diagrams
+beat both tables and matrices for connectivity, paths and neighbours,
+and are remembered better (Okoe 2018, Ghoniem 2004, visual 5.1); the
+layered drawing keeps crossings few (Sugiyama 1981, Purchase 1997,
+visual 5.2). Until the trial of 2026-10-25 the drawing was only the
+chain behind the cursor's task, by V17's "what is this waiting on?";
+the trial showed that the question is the whole graph, so the whole
+graph is drawn. Ghoniem 2004 turns against node-link drawings above
+about 20 nodes: if the linked tasks grow past that, this is reopened,
+towards V17's table of overlaps. A Gantt chart has no evidence for it
+and some against (workflow 6), and PlanningLines (Aigner 2005) show
+slack, which the owner has not asked about; both wait for a trial to
+ask for them. The research is thin here (workflow, "Where the research
+is thin"), so this is the choice the rules give, not a proven one.
 
 On design3's running example, with today Monday 26 October 2026:
 
-    SCHEDULE                              finishes Wed Nov 11 · critical: A B D E
+    PLAN                                  finishes Wed Nov 11 · critical: A B D E
     ▌ A  design            3 wd   Mon Oct 26 – Wed Oct 28
     ▌ B  build back end    5 wd   Thu Oct 29 – Wed Nov  4   after A
       C  build front end   4 wd   Thu Oct 29 – Tue Nov  3   after A
     ▌ D  integrate         2 wd   Thu Nov  5 – Fri Nov  6   after B, C
     ▌ E  test              3 wd   Mon Nov  9 – Wed Nov 11   after D
 
-    D comes after:   A ─▶ B ─▶ D
-                     A ─▶ C ─┘
+    What comes after what
+
+    A design ━━▶ B build back end ━━▶ D integrate ━━▶ E test
+    Wed Oct 28   Wed Nov 4            Fri Nov 6        Wed Nov 11
+             ╲                      ╱
+              ─▶ C build front end ─┘
+                 Tue Nov 3
 
 - One row per task, in the order of the dependency graph, with ties
   in the board's order. Rows move only when the owner changes what
@@ -358,10 +385,18 @@ On design3's running example, with today Monday 26 October 2026:
   start and finish as weekday and date, and the tasks it comes after.
   A task that has started shows its actual start; one that has
   finished is not on the schedule.
-- The chain under the table is the tasks the cursor's task comes
-  after, back to the first, as a small layered drawing with as few
-  crossings as possible (Sugiyama 1981, visual 5.2). It is the answer
-  to "what is this waiting on?".
+- The drawing under the table is every unfinished task that comes
+  after a task or that a task comes after, in layers from left to
+  right with as few crossings as possible (Sugiyama 1981, visual 5.2),
+  a line for each link. Under each title, small, is the day it
+  finishes, or "no estimate", so the drawing answers "when" as well
+  as "after what". The links between critical tasks are in full ink
+  and the rest quiet (V3); the cursor's task is bold. A task with no
+  links is not drawn: it is on the board and in the table, and a loose
+  dot would say nothing. When no task comes after another, the drawing
+  says how to make a link. The drawing changes in place with each act
+  (V12), and its layout moves only when the owner changes what comes
+  after what (V6).
 - Tasks with no dates are listed under the table, in full ink, as
   "not estimated", with the task that stops each.
 - The query hides rows that do not match; the schedule is always
