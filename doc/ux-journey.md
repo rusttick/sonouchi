@@ -199,7 +199,8 @@ there are no new lines, it is dropping.
 
 A task that came after an old task now comes after all of its
 replacements, and its card is marked so the owner can prune them with
-`a` (V7). Carrying them all over errs late, the safe direction when
+`a` (V7). The new tasks come after whatever the old tasks came after,
+for the same reason. Carrying them all over errs late, the safe direction when
 plans err early (Buehler 1994). A task that came after a dropped task
 no longer comes after anything for it.
 

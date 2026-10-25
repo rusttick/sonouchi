@@ -1,10 +1,14 @@
-/* A light theme and a Gothic face (V16). */
+/* A light theme and a Gothic face (V16). Few colours, never alone (V4). */
 :root {
   color-scheme: light;
   --ink: #1d1d1d;
-  --quiet: #5f5f5f;
+  --quiet: #6a6a6a;
+  --faint: #a8a8a8;
   --line: #dddad3;
   --paper: #fdfcf9;
+  --card: #ffffff;
+  --accent: #1f4e79;
+  --warn: #8a1c1c;
 }
 
 body {
@@ -17,53 +21,119 @@ body {
   line-height: 1.5;
 }
 
-/* The frame (V9): the same place in every part. */
+button, input { font: inherit; }
+
+/* The frame (V9): the same place in every screen. */
 header {
   display: flex;
   gap: 1rem;
   align-items: baseline;
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
 }
 header .app { font-weight: 700; }
-header .part { font-size: 1.15rem; font-weight: 600; }
-header .count { color: var(--quiet); }
-header .tools { margin-left: auto; font-size: 0.85rem; }
-header .import { margin-left: 0.75rem; }
-
-main {
-  padding: 1rem;
-  max-width: 48rem;
+header .part { font-size: 1.15rem; font-weight: 600; letter-spacing: 0.04em; }
+header #query { flex: 1 1 14rem; min-width: 10rem; padding: 0.25rem 0.5rem; }
+header .count { color: var(--quiet); font-variant-numeric: tabular-nums; }
+header .day { color: var(--quiet); }
+header .day.stale { color: var(--ink); font-weight: 600; }
+header .actions button, header .tools button {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
 }
+header .actions button.current { border-color: var(--ink); font-weight: 600; }
+header .tools { font-size: 0.85rem; }
+header .import { margin-left: 0.5rem; }
+header .import input { width: 12rem; }
 
-.quick-entry label { display: block; font-weight: 600; }
-#new-task {
-  box-sizing: border-box;
-  width: 100%;
-  font: inherit;
-  font-size: 1.15rem;
+main { padding: 1rem; }
+
+.keys { color: var(--quiet); font-size: 0.8rem; }
+.problem, .problems { color: var(--warn); }
+.quiet, .note { color: var(--quiet); }
+.empty { color: var(--quiet); }
+
+/* Stage 3: the board. Columns are regions (V5). */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(14rem, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.column {
+  background: #f4f2ec;
+  border-radius: 6px;
+  padding: 0.5rem;
+  min-height: 8rem;
+}
+.column h2 { font-size: 0.95rem; margin: 0 0 0.5rem 0.25rem; }
+.column h2 .count { color: var(--quiet); font-weight: 400; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid transparent;
+  border-radius: 4px;
   padding: 0.4rem 0.5rem;
+  margin-bottom: 0.4rem;
+  cursor: default;
 }
-.keys { color: var(--quiet); font-size: 0.85rem; margin-top: 0.25rem; }
+.card .title { display: flex; gap: 0.4rem; align-items: baseline; }
+.card .mark { width: 1em; color: var(--quiet); flex: none; }
+.card .words { font-weight: 500; }
+.card .no-estimate, .card .wait { font-size: 0.8rem; color: var(--quiet); margin-left: 1.4em; }
+/* The one thing that pops out (V3): the tasks with no record yet are in
+   full ink; recorded ones are lighter. */
+.card.recorded .words { color: var(--faint); font-weight: 400; }
+.card.recorded .mark { color: var(--faint); }
+.card.cursor { border-left-color: var(--accent); }
+.card.marked .words { text-decoration: underline; }
+/* What the last act changed (V7). */
+.card.changed { border-color: var(--accent); }
+.card .keys { margin-top: 0.3rem; margin-left: 1.4em; }
+.card .field { margin-top: 0.3rem; margin-left: 1.4em; font-size: 0.9rem; }
+.card .field .keys { margin-left: 0.5rem; }
+.card .field .problem { display: block; }
+.card .field .reason { font-weight: 600; }
+#field { padding: 0.1rem 0.3rem; }
 
-.added h2 { font-size: 1rem; margin-bottom: 0.25rem; }
-ol.added { list-style: none; padding: 0; margin: 0; }
-ol.added li {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.2rem 0;
-  border-bottom: 1px solid var(--line);
+/* Stage 4: the replacement display. */
+.replace {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) 2rem 3fr;
+  gap: 1rem;
+  align-items: start;
 }
-ol.added .mark { width: 1em; }
-ol.added .time {
-  margin-left: auto;
-  color: var(--quiet);
-  font-variant-numeric: tabular-nums;
-}
-/* The task just added (V3, V7). */
-ol.added li.just-added .title { font-weight: 700; }
+.replace .old-task { padding: 0.3rem 0; border-bottom: 1px solid var(--line); }
+.replace .old-task.none { color: var(--quiet); }
+.replace .arrow { font-size: 1.5rem; color: var(--quiet); text-align: center; }
+.replace .line { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.4rem; flex-wrap: wrap; }
+.replace .state { width: 6.5rem; color: var(--quiet); flex: none; }
+.replace input.title { flex: 1 1 18rem; padding: 0.2rem 0.4rem; }
+.replace input.estimate { padding: 0.2rem 0.4rem; text-align: right; }
+.replace .unit { color: var(--quiet); }
+.replace .lines .keys { margin-top: 0.5rem; }
 
-.problems { color: #8a1c1c; }
+/* Stage 5: the schedule. Exact values in a table; the chain drawn. */
+.schedule .summary { margin: 0 0 0.5rem; }
+.schedule .critical-note { color: var(--quiet); }
+.schedule table.rows { border-collapse: collapse; }
+.schedule td { padding: 0.25rem 0.75rem 0.25rem 0; vertical-align: baseline; }
+.schedule td.bar { width: 0.6em; color: var(--accent); padding-right: 0.25rem; }
+.schedule tr.critical td.title { font-weight: 600; }
+.schedule tr.cursor td { background: #eef2f6; }
+.schedule td.estimate { font-variant-numeric: tabular-nums; text-align: right; }
+.schedule td.dates { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.schedule td.after { color: var(--quiet); font-size: 0.9rem; }
+.schedule .behind h3, .schedule .not-estimated h3 { font-size: 0.95rem; margin: 1rem 0 0.25rem; }
+.schedule svg.chain line { stroke: var(--quiet); stroke-width: 1; }
+.schedule svg.chain text { font-size: 13px; fill: var(--ink); }
+.schedule svg.chain text.here { font-weight: 700; }
+.schedule .not-estimated ul { margin: 0; padding-left: 1.2rem; }
 
 footer {
   padding: 0.5rem 1rem;

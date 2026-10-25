@@ -2,19 +2,18 @@
   "The shell: holds the one atom, keeps the log in the browser's storage,
   reads the keyboard, renders the view with Replicant, and carries out
   the commands that the view dispatches as data. It supplies everything
-  the core may not make: ids, the clock and the platform."
+  the core may not make: ids, the clock, the platform and the tokenizer."
   (:require [cljs.reader :as reader]
+            [clojure.walk :as walk]
             [replicant.dom :as r]
-            [sonouchi.core.history :as history]
+            [sonouchi.core.actions :as actions]
             [sonouchi.core.keys :as keys]
             [sonouchi.core.log :as log]
-            [sonouchi.core.tasks :as tasks]
             [sonouchi.core.view :as view]))
 
 (def ^:private storage-key "sonouchi/log")
 (def ^:private unreadable-key "sonouchi/log-unreadable")
 (def ^:private before-import-key "sonouchi/log-before-import")
-(def ^:private field-id "new-task")
 
 (defonce ^:private store (atom {:state/log []}))
 
@@ -33,9 +32,23 @@
     {:state/now now
      :state/utc-offset-minutes (- (.getTimezoneOffset now))}))
 
+(def ^:private segmenter
+  (when (exists? js/Intl.Segmenter)
+    (js/Intl.Segmenter. js/undefined #js {:granularity "word"})))
+
+(defn- tokenize
+  "The words of text, by Unicode word boundaries (UAX #29) when the
+  browser has Intl.Segmenter, else by runs of letters and digits."
+  [text]
+  (if segmenter
+    (for [segment (.segment segmenter text)
+          :when (.-isWordLike segment)]
+      (.-segment segment))
+    (re-seq #"[\p{L}\p{N}]+" text)))
+
 (defn- render!
   [state]
-  (r/render (js/document.getElementById "app") (view/root state)))
+  (r/render (js/document.getElementById "app") (view/root state tokenize)))
 
 (defn- save!
   [k a-log]
@@ -76,52 +89,68 @@
           (swap! store assoc :state/last-act-ms ms)))
       0))))
 
-(defn- record!
-  "Appends act to the log, with an id and the time."
-  [act]
-  (let [clock (clock-state)]
-    (swap! store #(-> %
-                      (merge clock)
-                      (update :state/log conj
-                              (assoc act
-                                     :act/id (random-uuid)
-                                     :act/at (:state/now clock)))))))
+;; Focus: which input should have it after a command, worked out from
+;; the state, since the DOM is rendered from it.
 
-(defn- field
-  []
-  (js/document.getElementById field-id))
+(defn- focus!
+  [selector]
+  (some-> (js/document.querySelector selector) .focus))
 
-(defn- add-tasks!
-  [text]
-  (let [titles (tasks/titles text)]
-    (when (seq titles)
-      (record! (tasks/add-act titles (repeatedly (count titles) random-uuid)))
-      (set! (.-value (field)) ""))))
+(defn- focus-after!
+  [[command-name & args]]
+  (let [{:state/keys [field screen]} @store]
+    (case command-name
+      :command/query (focus! "#query")
+      :command/open-replace (focus! "[data-line='0'][data-part='title']")
+      :command/next-line (focus! (str "[data-line='" (inc (first args)) "'][data-part='title']"))
+      (:command/open-estimate :command/open-title :command/open-wait
+                              :command/reason-person :command/reason-outside-party)
+      (when field (focus! "#field"))
+      (:command/clear :command/record :command/reason-not-in-plan
+                      :command/show-stand-up :command/show-schedule)
+      (when-not (or field (= :replace screen))
+        (some-> js/document.activeElement .blur))
+      nil)))
 
-(defn- run-command!
+(defn- act!
+  "Runs a command through the core, with fresh ids and the clock, and
+  carries out what follows: the focus and the timing."
   [command]
-  (case command
-    :command/add (add-tasks! (.-value (field)))
-    :command/clear (set! (.-value (field)) "")
-    :command/undo (some-> (history/undo-act (:state/log @store)) record!)
-    :command/redo (some-> (history/redo-act (:state/log @store)) record!)))
+  (let [started (js/performance.now)]
+    (swap! store #(actions/run (merge % (clock-state)) command (repeatedly random-uuid) tokenize))
+    (focus-after! command)
+    (time-act! started)))
+
+;; The keyboard
+
+(defn- focus-of
+  "What has the focus, as sonouchi.core.keys/command wants it."
+  []
+  (let [el js/document.activeElement
+        value (when el (.-value el))
+        data (when el (.-dataset el))]
+    (cond
+      (nil? el) nil
+      (= "query" (.-id el)) [:query value]
+      (= "field" (.-id el)) [:field (keyword (.-kind data)) value]
+      (some-> data .-line) [:line (js/parseInt (.-line data)) (keyword (.-part data)) value]
+      :else nil)))
 
 (defn- on-key!
   [e]
   (when-not (or (.-isComposing e) (= 229 (.-keyCode e)))
-    (let [in-field? (identical? (field) (.-activeElement js/document))
-          chord (keys/chord {:key/name (.-key e)
+    (let [chord (keys/chord {:key/name (.-key e)
                              :key/ctrl (.-ctrlKey e)
                              :key/meta (.-metaKey e)
                              :key/alt (.-altKey e)
                              :key/shift (.-shiftKey e)})
-          command (keys/command (:state/platform @store) chord
-                                (when in-field? (.-value (field))))]
+          {:state/keys [screen] which :state/platform} @store
+          command (keys/command which chord screen (focus-of))]
       (when command
         (.preventDefault e)
-        (let [started (js/performance.now)]
-          (run-command! command)
-          (time-act! started))))))
+        (act! command)))))
+
+;; Files
 
 (defn- export!
   [a-log]
@@ -146,25 +175,27 @@
                      (save! before-import-key (:state/log @store)))
                    (swap! store #(-> %
                                      (dissoc :state/problems)
-                                     (merge result)))))))))
+                                     (merge result)
+                                     (actions/start tokenize)))))))))
 
 (defn- paste!
-  "Several pasted lines become several tasks, with whatever was already
-  in the field in front of the first. One line is left to the browser."
-  [e]
+  "Several lines pasted into a title line become several tasks: the
+  core splits them. One line is left to the browser."
+  [e i]
   (let [pasted (.getData (.-clipboardData e) "text")]
     (when (re-find #"\n" pasted)
       (.preventDefault e)
-      (let [started (js/performance.now)]
-        (add-tasks! (str (.-value (field)) pasted))
-        (time-act! started)))))
+      (act! [:command/typed [:line i :title] (str (.. e -target -value) pasted)]))))
 
 (defn- dispatch!
-  [{:replicant/keys [dom-event]} [action]]
-  (case action
+  "Receives every action vector from the hiccup. The keyword :field/text
+  in one stands for the text of the input the event came from."
+  [{:replicant/keys [dom-event]} [action-name & args :as action]]
+  (case action-name
     :command/export (export! (:state/log @store))
     :command/import (import! (.-target dom-event))
-    :command/paste (paste! dom-event)))
+    :command/paste (paste! dom-event (first args))
+    (act! (walk/postwalk-replace {:field/text (.. dom-event -target -value)} action))))
 
 (defn ^:dev/after-load reload
   "Renders the current state again. shadow-cljs calls it after each hot
@@ -177,6 +208,7 @@
   []
   (swap! store merge (clock-state) {:state/platform (platform)})
   (load!)
+  (swap! store actions/start tokenize)
   (r/set-dispatch! dispatch!)
   (.addEventListener js/document "keydown" on-key!)
   (add-watch store :render
@@ -184,5 +216,4 @@
                (when-not (= (:state/log old) (:state/log state))
                  (save! storage-key (:state/log state)))
                (render! state)))
-  (reload)
-  (some-> (field) .focus))
+  (reload))

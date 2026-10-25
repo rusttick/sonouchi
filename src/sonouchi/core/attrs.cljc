@@ -397,7 +397,8 @@
     :schema keyword?}
 
    :command/clear
-   {:doc "Empty the new-task field."
+   {:doc "Escape: close the open field, else leave the replacement
+  display, else clear the query."
     :schema keyword?}
 
    :command/undo
@@ -513,6 +514,18 @@
    {:doc "In the wait field: something else came first (3). Records at
   once, since there is no one to name."
     :schema keyword?}
+
+   :command/typed
+   {:doc "Text typed into an input: the query bar (:query), the open
+  field on a card (:field), or a line of the replacement display
+  ([:line i :title] or [:line i :estimate]). Carries the target and the
+  whole text, so that every typed character is in the state."
+    :schema [:tuple [:= :command/typed] any? string?]}
+
+   :command/cursor
+   {:doc "Move the cursor to the task with this id, as a click on its
+  card or row does."
+    :schema [:tuple [:= :command/cursor] uuid?]}
 
    ;; Key presses, as the shell describes them to the core
 

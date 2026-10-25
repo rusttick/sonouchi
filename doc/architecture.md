@@ -73,22 +73,19 @@ Built:
 | `sonouchi.core.log` | entities from the log, the patches that undo an act, checking a log read from a file | [architecture-log.md](architecture-log.md) |
 | `sonouchi.core.history` | undo and redo, worked out from the log alone | [architecture-log.md](architecture-log.md) |
 | `sonouchi.core.search` | the search index of task titles, as a value | [architecture-search.md](architecture-search.md) |
-| `sonouchi.core.keys` | which key does what on each platform, and how keys are shown | [architecture-interface.md](architecture-interface.md) |
-| `sonouchi.core.tasks` | adding tasks, and the tasks added today | [architecture-interface.md](architecture-interface.md) |
-| `sonouchi.core.view` | the page, as hiccup | [architecture-interface.md](architecture-interface.md) |
+| `sonouchi.core.keys` | which key does what on each screen and platform, and how keys are shown | [architecture-interface.md](architecture-interface.md) |
+| `sonouchi.core.tasks` | titles from text, and the act that adds tasks by title, which quick-entry logs still use | [architecture-interface.md](architecture-interface.md) |
+| `sonouchi.core.screen` | the values the views and the commands derive from the state: today, the columns, the cursor, the schedule, the index | [architecture-interface.md](architecture-interface.md) |
+| `sonouchi.core.actions` | what every command does to the state: one map from command to function | [architecture-interface.md](architecture-interface.md) |
+| `sonouchi.core.chain` | the tasks behind one task, in layers with few crossings, and every task's depth | [architecture-interface.md](architecture-interface.md) |
+| `sonouchi.core.view` | the screens, as hiccup | [architecture-interface.md](architecture-interface.md) |
 | `sonouchi.core.schedule` | design3's Step 0: the forward pass of the critical path method with actual days replacing computed ones, the backward pass for slack, the critical path, and cycles and unknown tasks described as data. Day 0 is the start of today; a started task finishes at day 1 at the earliest | this page |
 | `sonouchi.core.estimates` | every estimate with the time it was made, each task's latest, whether design3 counts it, parsing what the owner typed, and the act that records one | this page, "The data for version 0" |
 | `sonouchi.core.board` | the tasks on the board, each one's column and place, its open wait, the days it has records for, the text it is found by, and the tasks turned into the scheduler's input from today | this page, "The data for version 0" |
 | `sonouchi.core.days` | days as ISO strings: today from the shell's clock, the next and previous day, working days, adding and counting them, and a day's label such as "Mon 26 Oct". No host calendar: the civil-date arithmetic is written out, so both platforms agree | this page, "The data for version 0" |
 
-The page built today is a quick-entry field with the tasks added today
-under it. The screens in [ux-journey.md](ux-journey.md) replace it.
-
-Planned for version 0:
-
-| Namespace | What it does |
-|---|---|
-| `sonouchi.core.chain` | the tasks behind one task, laid out in layers with few crossings, for the schedule's drawing (ux-journey, "The schedule") |
+The screens are those of [ux-journey.md](ux-journey.md); the quick-entry
+page is gone, and its logs still load.
 
 ## The data for version 0
 
@@ -159,7 +156,7 @@ times and each wait keeps its own times:
 | `:action/record-worked-on` | the day added to `:task/worked-on` |
 | `:action/begin-wait` | a new wait entity |
 | `:action/end-wait` | the wait's `:wait/ended` |
-| `:action/replace` | each new task, with its title and, by its chosen state, `:task/started` and `:task/finished`; a new estimate entity for each new task that was given one; each old task's `:task/replaced-by`; and the `:task/after` of each task that came after an old task, with the old task swapped for all of its replacements, or removed if it was dropped. A new task's `:task/started` is the one old task's start when exactly one old task had started, and the recording day otherwise (ux-journey, Stage 4) |
+| `:action/replace` | each new task, with its title and, by its chosen state, `:task/started` and `:task/finished`; a new estimate entity for each new task that was given one; each old task's `:task/replaced-by`; and the `:task/after` of each task that came after an old task, with the old task swapped for all of its replacements, or removed if it was dropped. A new task's `:task/started` is the one old task's start when exactly one old task had started, and the recording day otherwise; new tasks come after what the old tasks came after (ux-journey, Stage 4) |
 | `:action/correct-title` | the task's new `:task/title` |
 | `:action/estimate` | a new estimate entity |
 | `:action/set-after` | the task's whole new `:task/after` set, or its retraction when the set is empty. Not recorded if it would make a cycle |
