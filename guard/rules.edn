@@ -14,9 +14,11 @@
 
  ;; Every public var in src must be used somewhere in src or test, except
  ;; these, which are used from outside: entry points called by
- ;; shadow-cljs, and data read by tools such as this guard.
+ ;; shadow-cljs and the command line, and data read by tools such as
+ ;; this guard.
  :entry-points #{sonouchi.app/init
                  sonouchi.app/reload
+                 sonouchi.main/-main
                  sonouchi.core.attrs/registry}
 
  ;; Qualified keywords from these namespaces need no registry entry:

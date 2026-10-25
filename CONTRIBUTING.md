@@ -7,8 +7,9 @@ minimal state. Clojure and ClojureScript were designed for this way of
 working, so most of the rules describe ordinary, idiomatic code. The
 rules exist to keep it that way as the code grows.
 
-They are adapted from `../soonish/CONTRIBUTING.md`, the server's rules,
-for the browser. Where the two differ, it is because of the browser.
+sonouchi was two projects, the scheduler (soonish) and the browser
+client, and these rules are the two sets of rules made one. The core
+is shared by the JVM and the browser, so it follows both.
 
 Each rule ends with how it is checked:
 
@@ -102,10 +103,15 @@ exactly what you need and why.
   the JVM and in the browser alike. Views, actions and queries. Values
   in, values out. No state, no I/O, no clock, no randomness, no Java,
   no JavaScript, no DOM. **guard**
-- everything else in `src/`: the shell, in `.cljs`. It holds the one
-  atom, renders with Replicant, dispatches actions, and carries out
-  effects such as storage. Keep it thin. `sonouchi.app` is the entry
-  point.
+- everything else in `src/`: the shells. Keep them thin.
+  - `sonouchi.app`, in `.cljs`: the browser. It holds the one atom,
+    renders with Replicant, dispatches actions, and carries out
+    effects such as storage.
+  - `sonouchi.main`, in `.clj`: the command line on the JVM. It reads
+    tasks from an EDN file and prints their schedule, as in
+    `clojure -M -m sonouchi.main examples/running-example.edn`.
+- `examples/`: EDN inputs for `sonouchi.main`, such as design3's
+  running example.
 - `src/sonouchi/core/attrs.cljc`: every attribute, defined once.
 - `test/`: tests, mirroring `src/`, in `.cljc`.
 - `public/index.html`: the page. The builds write `public/js/`.
@@ -266,7 +272,7 @@ platforms. **guard**
   **review**
 - Treat a read from storage as obtaining a value, and write queries as
   functions of that value. **review**
-- Send values across every boundary: storage, files, HTTP to soonish.
+- Send values across every boundary: storage, files, HTTP to a server.
   EDN, not JSON built by hand. **review**
 - Grow by accretion: provide more, require less. Never remove or
   repurpose a public function or an attribute. If a meaning changes,

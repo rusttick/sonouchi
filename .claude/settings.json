@@ -9,6 +9,7 @@
       "Bash(npx shadow-cljs compile:*)",
       "Bash(npx shadow-cljs release:*)",
       "Bash(node target/node-test.js)",
+      "Bash(clojure -M -m sonouchi.main:*)",
       "Bash(npm ci)",
       "mcp__clojure-mcp__list_nrepl_ports",
       "mcp__clojure-mcp__paren_repair"

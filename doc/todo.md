@@ -14,12 +14,7 @@ Nothing is built until these are read, in this order:
 - `doc/research-visual.md`
 - `doc/todo.md`
 
-## Owner: finish the merge
-
-- Apply [merge-guard-rails.md](merge-guard-rails.md), run `bin/check`,
-  then delete that document and the `../soonish` folder.
-
-## Next, after the merge
+## Next
 
 - **Time in the data.** Instants and millisecond durations, in the
   form Clojure uses on both platforms. Working days appear only in

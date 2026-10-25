@@ -53,6 +53,57 @@
   blank."
     :schema [:and string? [:fn #(re-find #"\S" %)]]}
 
+   ;; Tasks, as the scheduler reads them. Days are working days counted
+   ;; from day 0 of the project.
+
+   :task/estimate-days
+   {:doc "Working days that the person doing the task thinks are equally
+  likely to be too many or too few: a median."
+    :schema [:and number? [:> 0]]}
+
+   :task/after
+   {:doc "Ids of the tasks that must finish before this one can start."
+    :schema [:set any?]}
+
+   :task/actual-start-day
+   {:doc "The working day on which the task actually started, counted
+  from day 0 of the project."
+    :schema [:and number? [:>= 0]]}
+
+   :task/actual-finish-day
+   {:doc "The working day on which the task actually finished, counted
+  from day 0 of the project."
+    :schema [:and number? [:>= 0]]}
+
+   ;; Schedules, as computed from tasks
+
+   :schedule/start-day
+   {:doc "The computed working day on which a task starts."
+    :schema number?}
+
+   :schedule/finish-day
+   {:doc "The computed working day on which a task finishes."
+    :schema number?}
+
+   :schedule/times
+   {:doc "Task id to that task's :schedule/start-day and
+  :schedule/finish-day."
+    :schema [:map-of any? map?]}
+
+   :schedule/order
+   {:doc "Task ids in an order where every task comes after the tasks it
+  waits for."
+    :schema [:vector any?]}
+
+   :schedule/cycle
+   {:doc "Ids of the tasks on a dependency cycle, or waiting behind one,
+  so that no order exists."
+    :schema [:set any?]}
+
+   :schedule/unknown-tasks
+   {:doc "Ids named in some :task/after that are not tasks."
+    :schema [:set any?]}
+
    ;; Actions: what made an act (:act/action)
 
    :action/add-task
