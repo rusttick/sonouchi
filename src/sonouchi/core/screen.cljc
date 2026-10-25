@@ -11,6 +11,7 @@
             [sonouchi.core.days :as days]
             [sonouchi.core.estimates :as estimates]
             [sonouchi.core.log :as log]
+            [sonouchi.core.requests :as requests]
             [sonouchi.core.schedule :as schedule]
             [sonouchi.core.search :as search]))
 
@@ -147,16 +148,27 @@
   (into (shown-rows state entities latest shown)
         (shown-not-estimated state entities latest shown)))
 
+(defn request-ids
+  "The ids the cursor moves over on the requests screen: the open
+  requests in the order asked."
+  [state entities]
+  (requests/open (:state/log state) entities))
+
+(defn- first-or-cursor
+  [state ids]
+  (let [id (:state/cursor state)]
+    (if (some #{id} ids) id (first ids))))
+
 (defn cursor-on-screen
   "The id under the cursor on the screen the state shows. On the
   schedule it is the state's cursor when that is in schedule-ids, else
-  the first of them; elsewhere it is what cursor gives for cols. shown
-  is the set of ids matching the query, and cols the board's columns."
+  the first of them; on the requests screen, likewise over request-ids;
+  elsewhere it is what cursor gives for cols. shown is the set of ids
+  matching the query, and cols the board's columns."
   [state entities shown cols]
-  (if (= :schedule (:state/screen state))
-    (let [ids (schedule-ids state entities (latest-estimates state entities) shown)
-          id (:state/cursor state)]
-      (if (some #{id} ids) id (first ids)))
+  (case (:state/screen state)
+    :schedule (first-or-cursor state (schedule-ids state entities (latest-estimates state entities) shown))
+    :requests (first-or-cursor state (request-ids state entities))
     (cursor state cols)))
 
 (defn- scheduled-dates

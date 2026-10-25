@@ -78,3 +78,21 @@
   (is (= "s" (keys/label :mac :action/record-start)))
   (is (= "⌥↑" (keys/label :mac :command/state-up)))
   (is (= "Alt+↑" (keys/label :other :command/state-up))))
+
+(deftest the-requests-screen-takes-its-own-acts
+  (is (= [:command/show-requests] (keys/command :mac "4" :stand-up nil)))
+  (is (= [:command/open-request] (keys/command :mac "N" :requests nil)))
+  (is (= [:command/open-promise] (keys/command :mac "P" :requests nil)))
+  (is (= [:action/set-serves] (keys/command :mac "V" :requests nil)))
+  (is (= [:action/close-request] (keys/command :mac "C" :requests nil)))
+  (is (= [:command/open-request-words] (keys/command :mac "E" :requests nil)))
+  (is (= [:command/mark-request] (keys/command :mac "X" :requests nil)))
+  (is (= [:command/cursor-down] (keys/command :mac "ArrowDown" :requests nil)))
+  (is (nil? (keys/command :mac "S" :requests nil)) "not the board's acts")
+  (is (= [:command/record] (keys/command :mac "Enter" :requests [:field :promise "nov 6"])))
+  (testing "v and p on the board: serves, and a promise on the open wait"
+    (is (= [:action/set-serves] (keys/command :mac "V" :stand-up nil)))
+    (is (= [:command/open-promise] (keys/command :mac "P" :stand-up nil)))
+    (is (nil? (keys/command :mac "N" :stand-up nil))))
+  (is (= "4" (keys/label :mac :command/show-requests)))
+  (is (= "v" (keys/label :other :action/set-serves))))

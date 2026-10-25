@@ -2,7 +2,8 @@
 
 How sonouchi records what other people ask of the owner, what the
 owner promises them, and what others promise the owner; and how the
-tasks that serve a request are seen together. Designed, not built.
+tasks that serve a request are seen together. Built on 2026-10-25;
+where the build differs from the text, "As built" says so.
 The rules cited (V1 to V17) are in [ux-design.md](ux-design.md); the
 screens of version 0 are in [ux-journey.md](ux-journey.md). Each
 decision names its grounds, as [strategy.md](strategy.md) requires;
@@ -244,6 +245,15 @@ tasks on the board.
 | `e` | correct the words or the asker in place |
 | `x` | mark a request, so that `v` on a card can name it (below) |
 | ⌘Z | undo |
+
+**As built:** the cursor stays on the rows; it does not move into the
+list under the table. A task is taken off a request from the board,
+with `v` on its card and the requests it should still serve marked,
+or from the row with `v` and the tasks it should still have marked.
+The list marks every task that could be worked on today for the
+request, which may be more than one when two chains are open. A new
+request is typed on one line, "Tanaka: the integrated system"; the
+first colon splits the asker from the words.
 
 `v` from the board, on a card, with requests marked: the card's task
 serves exactly the marked requests. Marks on tasks and marks on

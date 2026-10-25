@@ -104,10 +104,12 @@
       :command/open-replace (focus! "[data-line='0'][data-part='title']")
       :command/next-line (focus! (str "[data-line='" (inc (first args)) "'][data-part='title']"))
       (:command/open-estimate :command/open-title :command/open-wait
-                              :command/reason-person :command/reason-outside-party)
+                              :command/reason-person :command/reason-outside-party
+                              :command/open-request :command/open-promise :command/open-request-words)
       (when field (focus! "#field"))
       (:command/clear :command/record :command/reason-not-in-plan
-                      :command/show-stand-up :command/show-schedule :command/show-record)
+                      :command/show-stand-up :command/show-schedule :command/show-record
+                      :command/show-requests)
       (when-not (or field (= :replace screen))
         (some-> js/document.activeElement .blur))
       nil)))

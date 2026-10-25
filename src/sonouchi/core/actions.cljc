@@ -11,6 +11,7 @@
             [sonouchi.core.days :as days]
             [sonouchi.core.estimates :as estimates]
             [sonouchi.core.history :as history]
+            [sonouchi.core.requests :as requests]
             [sonouchi.core.schedule :as schedule]
             [sonouchi.core.screen :as screen]
             [sonouchi.core.tasks :as tasks]))
@@ -36,9 +37,14 @@
                                                   :act/id (first ids)
                                                   :act/at (:state/now state))))
         after (screen/current state')
-        changed (set (for [patch (:act/patches act)
-                           entities [before after]]
-                       (task-of entities patch)))]
+        texts-before (board/search-texts before)
+        texts-after (board/search-texts after)
+        changed (into (set (for [patch (:act/patches act)
+                                 entities [before after]]
+                             (task-of entities patch)))
+                      (for [id (set/union (set (keys texts-before)) (set (keys texts-after)))
+                            :when (not= (texts-before id) (texts-after id))]
+                        id))]
     (assoc state' :state/index (screen/reindexed state' tokenize after changed))))
 
 (defn- index-of
@@ -63,9 +69,17 @@
         cols (screen/columns state entities shown)]
     (f entities cols (screen/cursor-on-screen state entities shown cols))))
 
+(defn- along
+  "The cursor moved dr steps along ids, a vector, from cursor."
+  [state ids cursor dr]
+  (let [i (or (index-of ids cursor) 0)
+        i' (-> (+ (max i 0) dr) (max 0) (min (dec (count ids))))]
+    (if (seq ids) (assoc state :state/cursor (ids i')) state)))
+
 (defn- move
   "The cursor moved dc columns and dr rows, staying on a card. On the
-  schedule, dr moves along what the schedule shows and dc does nothing."
+  schedule and the requests screen, dr moves along what the screen
+  shows and dc does nothing."
   [state tokenize dc dr]
   (with-board
     state tokenize
@@ -74,11 +88,13 @@
         (nil? cursor) state
 
         (= :schedule (:state/screen state))
-        (let [ids (screen/schedule-ids state entities (screen/latest-estimates state entities)
-                                       (screen/matching state tokenize entities))
-              i (or (index-of ids cursor) 0)
-              i' (-> (+ (max i 0) dr) (max 0) (min (dec (count ids))))]
-          (if (seq ids) (assoc state :state/cursor (ids i')) state))
+        (along state
+               (screen/schedule-ids state entities (screen/latest-estimates state entities)
+                                    (screen/matching state tokenize entities))
+               cursor dr)
+
+        (= :requests (:state/screen state))
+        (along state (screen/request-ids state entities) cursor dr)
 
         :else
         (let [[c r] (screen/position cols cursor)
@@ -181,6 +197,140 @@
   [state message]
   (assoc-in state [:state/field :problem/message] message))
 
+;; Requests and promises (ux-requests)
+
+(defn- record-request
+  "A new request from what the field holds, asked on day, or the reason
+  it cannot be recorded, in the field."
+  [state text day ids tokenize]
+  (let [{:problem/keys [message] :as parsed} (requests/parse-request text)]
+    (if message
+      (problem-in-field state message)
+      (-> state
+          (dissoc :state/field)
+          (record {:act/action :action/add-request
+                   :act/patches [(assoc parsed :patch/entity (first ids) :request/asked day)]}
+                  (rest ids) tokenize)
+          (assoc :state/cursor (first ids))))))
+
+(defn- record-promise
+  "A new promise about the request the field is on, or about the open
+  wait of the task it is on, for the day typed; or why it cannot be."
+  [state text ids tokenize]
+  (let [{:field/keys [request task]} (:state/field state)
+        entities (screen/current state)
+        about (or request (:patch/entity (get (board/open-waits entities) task)))
+        day (days/parse-day text (screen/today state))]
+    (cond
+      (nil? about) (dissoc state :state/field)
+      (nil? day) (problem-in-field state "a day, as \"nov 6\" or \"2026-11-06\"")
+      :else (-> state
+                (dissoc :state/field)
+                (record {:act/action :action/promise
+                         :act/patches [{:patch/entity (first ids) :promise/about about :promise/day day}]}
+                        (rest ids) tokenize)))))
+
+(defn- record-request-words
+  "The corrected asker and words of the request the field is on."
+  [state text ids tokenize]
+  (let [{:field/keys [request]} (:state/field state)
+        entities (screen/current state)
+        {:problem/keys [message] :as parsed} (requests/parse-request text)
+        current (select-keys (entities request) [:request/asker :request/words])]
+    (cond
+      message (problem-in-field state message)
+      (= parsed current) (dissoc state :state/field)
+      :else (-> state
+                (dissoc :state/field)
+                (record {:act/action :action/correct-request
+                         :act/patches [(cond-> (assoc parsed :patch/entity request)
+                                         (not (:request/words parsed)) (assoc :patch/retract #{:request/words}))]}
+                        ids tokenize)))))
+
+(defn- open-request
+  "The field for a new request, on the requests screen."
+  [state _ _ _]
+  (if (= :requests (:state/screen state))
+    (assoc state :state/field {:field/kind :request :field/text ""})
+    state))
+
+(defn- open-promise
+  "The promised-day field: on the request under the cursor on the
+  requests screen, or on the task under the cursor elsewhere when it
+  has an open wait."
+  [state _ _ tokenize]
+  (on-cursor state tokenize
+             (fn [entities cursor]
+               (cond
+                 (= :requests (:state/screen state))
+                 (assoc state :state/field {:field/kind :promise :field/request cursor :field/text ""})
+
+                 (get (board/open-waits entities) cursor)
+                 (assoc state :state/field {:field/kind :promise :field/task cursor :field/text ""})
+
+                 :else state))))
+
+(defn- open-request-words
+  [state _ _ tokenize]
+  (if (= :requests (:state/screen state))
+    (on-cursor state tokenize
+               (fn [entities cursor]
+                 (assoc state :state/field {:field/kind :request-words
+                                            :field/request cursor
+                                            :field/text (requests/show-request (entities cursor))})))
+    state))
+
+(defn- mark-request
+  [state _ _ tokenize]
+  (if (= :requests (:state/screen state))
+    (on-cursor state tokenize
+               (fn [_ cursor]
+                 (update state :state/marked-requests
+                         #(if (contains? (set %) cursor) (disj (set %) cursor) (conj (set %) cursor)))))
+    state))
+
+(defn- serves-patch
+  [id serves]
+  (if (seq serves)
+    {:patch/entity id :task/serves serves}
+    {:patch/entity id :patch/retract #{:task/serves}}))
+
+(defn- set-serves
+  "On the requests screen: the request under the cursor is served by
+  exactly the marked tasks. Elsewhere: the task under the cursor serves
+  exactly the marked requests. The marks read are cleared."
+  [state _ ids tokenize]
+  (on-cursor state tokenize
+             (fn [entities cursor]
+               (let [on-board (board/tasks entities)]
+                 (if (= :requests (:state/screen state))
+                   (let [marked (set/intersection (set (:state/marked state)) (set (keys on-board)))
+                         patches (for [[id task] (sort-by (comp str key) on-board)
+                                       :let [serves (set (:task/serves task))
+                                             serves' (if (marked id) (conj serves cursor) (disj serves cursor))]
+                                       :when (not= serves serves')]
+                                   (serves-patch id serves'))]
+                     (cond-> (assoc state :state/marked #{})
+                       (seq patches) (record {:act/action :action/set-serves :act/patches (vec patches)}
+                                             ids tokenize)))
+                   (let [marked (set/intersection (set (:state/marked-requests state))
+                                                  (set (keys (requests/all entities))))
+                         patch (serves-patch cursor marked)]
+                     (cond-> (assoc state :state/marked-requests #{})
+                       (not= marked (set (:task/serves (entities cursor))))
+                       (record {:act/action :action/set-serves :act/patches [patch]} ids tokenize))))))))
+
+(defn- close-request
+  [state _ ids tokenize]
+  (if (= :requests (:state/screen state))
+    (on-cursor state tokenize
+               (fn [_ cursor]
+                 (record state
+                         {:act/action :action/close-request
+                          :act/patches [{:patch/entity cursor :request/closed (screen/recording-day state)}]}
+                         ids tokenize)))
+    state))
+
 (defn- record-field
   "Records what the open field holds, or says in the field why it cannot."
   [state ids tokenize]
@@ -206,6 +356,9 @@
               (nil? chosen) (problem-in-field state "press 1, 2 or 3 for the reason")
               (str/blank? trimmed) (problem-in-field state "on whom?")
               :else (begin-wait state task chosen trimmed day ids tokenize))
+      :request (record-request state trimmed day ids tokenize)
+      :promise (record-promise state trimmed ids tokenize)
+      :request-words (record-request-words state trimmed ids tokenize)
       state)))
 
 ;; Replacing N tasks by M
@@ -454,6 +607,14 @@
    :command/show-stand-up (show :stand-up)
    :command/show-schedule (show :schedule)
    :command/show-record (show :record)
+   :command/show-requests (show :requests)
+   :command/open-request open-request
+   :command/open-promise open-promise
+   :command/open-request-words open-request-words
+   :command/mark-request mark-request
+   :command/cursor-request cursor-to
+   :action/set-serves set-serves
+   :action/close-request close-request
    :command/toggle-menu toggle-menu
    :command/clear clear
    :command/open-replace open-replace

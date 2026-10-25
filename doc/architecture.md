@@ -82,6 +82,7 @@ Built:
 | `sonouchi.core.schedule` | design3's Step 0: the forward pass of the critical path method with actual days replacing computed ones, the backward pass for slack, the critical path, and cycles and unknown tasks described as data. Day 0 is the start of today; a started task finishes at day 1 at the earliest | this page |
 | `sonouchi.core.estimates` | every estimate with the time it was made, each task's latest, whether design3 counts it, parsing what the owner typed, and the act that records one | this page, "The data for version 0" |
 | `sonouchi.core.board` | the tasks on the board, each one's column and place, its open wait, the days it has records for, the text it is found by, and the tasks turned into the scheduler's input from today | this page, "The data for version 0" |
+| `sonouchi.core.requests` | requests and promises from the facts: the open requests in the order asked, the promise in force about a request or a wait, the tasks serving a request, when it will be done, its slack against the promise, and the tasks to do now for it ([ux-requests.md](ux-requests.md)) | [ux-requests.md](ux-requests.md) |
 | `sonouchi.core.days` | days as ISO strings: today from the shell's clock, the next and previous day, working days, adding and counting them, a day's label such as "Mon Oct 26", and how far back a day is in words. No host calendar: the civil-date arithmetic is written out, so both platforms agree | this page, "The data for version 0" |
 
 The screens are those of [ux-journey.md](ux-journey.md); the quick-entry
@@ -123,6 +124,7 @@ the facts and today, and they are never stored.
 | `:task/worked-on` | the set of days it was worked on |
 | `:task/replaced-by` | the set of tasks that replaced it. An empty set means it was dropped. A task with this attribute has left the board |
 | `:task/kind` | an optional kind label from a small fixed list, as design3's Step 0 records and its Step 2 needs. No screen in version 0 sets it; it is registered so that it can be added without a new attribute when the data asks for it |
+| `:task/serves` | the set of requests the task serves; absent when none ([ux-requests.md](ux-requests.md)) |
 
 **An estimate** is an entity of its own, so that every estimate of a
 task is kept, each with the time it was made:
@@ -146,6 +148,9 @@ times and each wait keeps its own times:
 | `:wait/on` | on whom, in the owner's words. Absent when the reason is `:not-in-plan` |
 | `:wait/began` | the day it began |
 | `:wait/ended` | the day it ended; absent while it lasts |
+
+**A request** and **a promise** are entities of their own, described
+with their acts in [ux-requests.md](ux-requests.md), "The facts".
 
 **The acts** that append them:
 
@@ -276,8 +281,8 @@ Still open:
   inherits its start.
 - **Order.** How a manual order is recorded as appended facts, with an
   exact order only near the top.
-- **Requests.** Designed in [ux-requests.md](ux-requests.md), not yet
-  built: a request has an asker, words and a day; a promise is an
+- **Requests.** Built as [ux-requests.md](ux-requests.md) designs
+  them: a request has an asker, words and a day; a promise is an
   entity about a request or a wait; a task serves a set of requests.
   Still open there: whether a wait and a request become one thing.
 - **Relations.** Which were used: comes after, part of, serves,

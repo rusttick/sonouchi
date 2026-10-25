@@ -4,6 +4,7 @@
             [sonouchi.core.board :as board]
             [sonouchi.core.estimates :as estimates]
             [sonouchi.core.log :as log]
+            [sonouchi.core.requests :as requests]
             [sonouchi.core.screen :as screen]))
 
 (defn- id
@@ -331,3 +332,92 @@
   (let [state (add empty-state "one")
         state (run state [:command/open-estimate] [:command/typed :field "2"] [:command/record])]
     (is (= 1 (count (estimates/all (:state/log state) (log/entities (:state/log state))))))))
+
+(deftest requests-and-promises
+  (let [state (add empty-state "design" "build back end")
+        a (titled state "design") b (titled state "build back end")
+        asked (run state [:command/show-requests] [:command/open-request]
+                   [:command/typed :field "Tanaka: the integrated system"] [:command/record])
+        request-id (first (screen/request-ids asked (entities asked)))
+        request (fn [s] ((entities s) request-id))]
+    (is (= :requests (:state/screen asked)))
+    (is (= {:request/asker "Tanaka" :request/words "the integrated system" :request/asked "2026-10-23"}
+           (request asked)))
+    (is (= request-id (:state/cursor asked)) "the new request is under the cursor")
+    (is (nil? (:state/field asked)))
+    (testing "a request needs an asker"
+      (is (get-in (run state [:command/show-requests] [:command/open-request]
+                       [:command/typed :field ": nothing"] [:command/record])
+                  [:state/field :problem/message])))
+    (testing "n does nothing on the board"
+      (is (nil? (:state/field (run state [:command/open-request])))))
+    (testing "v on the request: served by exactly the marked tasks"
+      (let [served (run asked [:command/show-stand-up] [:command/cursor a] [:command/mark]
+                        [:command/cursor b] [:command/mark] [:command/show-requests] [:action/set-serves])]
+        (is (= #{request-id} (:task/serves (task served "design"))))
+        (is (= #{request-id} (:task/serves (task served "build back end"))))
+        (is (empty? (:state/marked served)) "task marks are cleared")
+        (is (= :action/set-serves (:act/action (last-act served))))
+        (is (= #{a b} (screen/matching (assoc served :state/query "tanaka") tokenize (entities served)))
+            "the asker finds the tasks")
+        (is (= #{a b} (screen/matching (assoc served :state/query "integrated") tokenize (entities served)))
+            "and so do the words")
+        (testing "v with one marked drops the other"
+          (let [only-a (run served [:command/show-stand-up] [:command/cursor a] [:command/mark]
+                            [:command/show-requests] [:action/set-serves])]
+            (is (= #{request-id} (:task/serves (task only-a "design"))))
+            (is (not (contains? (task only-a "build back end") :task/serves)))))
+        (testing "v on a card with marked requests: the task serves exactly those"
+          (let [from-card (run served [:command/mark-request] [:command/show-stand-up]
+                               [:command/cursor b] [:action/set-serves])]
+            (is (= #{request-id} (:task/serves (task from-card "build back end"))))
+            (is (empty? (:state/marked-requests from-card)))
+            (let [none (run served [:command/show-stand-up] [:command/cursor b] [:action/set-serves])]
+              (is (not (contains? (task none "build back end") :task/serves)) "none marked: serves none"))))
+        (testing "undo puts the links back"
+          (let [undone (run served [:command/undo])]
+            (is (not (contains? (task undone "design") :task/serves)))
+            (is (empty? (screen/matching (assoc undone :state/query "tanaka") tokenize (entities undone))))))))
+    (testing "p promises a day for the request"
+      (let [promised (run asked [:command/open-promise] [:command/typed :field "nov 6"] [:command/record])
+            in-force (requests/promises (:state/log promised) (entities promised))]
+        (is (= "2026-11-06" (get-in in-force [request-id :promise/day])))
+        (is (= :action/promise (:act/action (last-act promised))))
+        (testing "a new promise replaces the old in force, and both are kept"
+          (let [slipped (run promised [:command/open-promise] [:command/typed :field "nov 9"] [:command/record])]
+            (is (= "2026-11-09" (get-in (requests/promises (:state/log slipped) (entities slipped))
+                                        [request-id :promise/day])))
+            (is (= 2 (count (filter :promise/about (vals (entities slipped))))))))
+        (testing "not a day"
+          (is (get-in (run asked [:command/open-promise] [:command/typed :field "friday"] [:command/record])
+                      [:state/field :problem/message])))))
+    (testing "p on a waiting card promises for its wait"
+      (let [waiting (run state [:command/cursor a] [:command/open-wait] [:command/reason-person]
+                         [:command/typed :field "Sato"] [:command/record])
+            wait-id (:patch/entity (get (board/open-waits (entities waiting)) a))
+            promised (run waiting [:command/open-promise] [:command/typed :field "11/6"] [:command/record])]
+        (is (= "2026-11-06" (get-in (requests/promises (:state/log promised) (entities promised))
+                                    [wait-id :promise/day])))
+        (is (nil? (:state/field (run state [:command/cursor a] [:command/open-promise])))
+            "p on a card without a wait does nothing")))
+    (testing "e corrects the asker and words"
+      (let [opened (run asked [:command/open-request-words])]
+        (is (= "Tanaka: the integrated system" (get-in opened [:state/field :field/text])))
+        (let [fixed (run opened [:command/typed :field "Tanaka-san: the integrated system, with tests"]
+                         [:command/record])]
+          (is (= "Tanaka-san" (:request/asker (request fixed))))
+          (is (= "the integrated system, with tests" (:request/words (request fixed)))))
+        (is (= (:state/log asked) (:state/log (run opened [:command/record]))) "unchanged records nothing")))
+    (testing "c closes the request on the recording day"
+      (let [closed (run asked [:action/close-request])]
+        (is (= "2026-10-23" (:request/closed (request closed))))
+        (is (empty? (screen/request-ids closed (entities closed))))
+        (is (nil? (screen/cursor-on-screen closed (entities closed) #{} [[] [] []])) "nothing under the cursor")))
+    (testing "the cursor moves down the requests, and x marks one"
+      (let [two (run asked [:command/open-request] [:command/typed :field "Sato: the front end"] [:command/record])
+            ids (screen/request-ids two (entities two))]
+        (is (= 2 (count ids)))
+        (is (= request-id (first ids)) "asked first, listed first")
+        (is (= (second ids) (:state/cursor (run two [:command/cursor request-id] [:command/cursor-down]))))
+        (is (= #{request-id} (:state/marked-requests (run two [:command/cursor-request request-id]
+                                                          [:command/mark-request]))))))))

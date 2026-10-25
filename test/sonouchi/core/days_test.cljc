@@ -89,3 +89,18 @@
 (defspec a-week-has-five-working-days 100
   (prop/for-all [day gen-day]
     (= 5 (days/working-days-between day (nth (iterate days/next-day day) 7)))))
+
+(deftest a-day-typed-by-the-owner
+  (let [today "2026-10-26"]
+    (is (= "2026-11-06" (days/parse-day "2026-11-06" today)))
+    (is (= "2026-11-06" (days/parse-day "nov 6" today)))
+    (is (= "2026-11-06" (days/parse-day "6 Nov" today)))
+    (is (= "2026-11-06" (days/parse-day "November 6" today)))
+    (is (= "2026-11-06" (days/parse-day "11-06" today)))
+    (is (= "2026-11-06" (days/parse-day "11/6" today)))
+    (is (= "2026-10-26" (days/parse-day "oct 26" today)) "today itself")
+    (is (= "2027-01-05" (days/parse-day "jan 5" today)) "a day already past this year is next year's")
+    (is (nil? (days/parse-day "" today)))
+    (is (nil? (days/parse-day "friday" today)))
+    (is (nil? (days/parse-day "feb 30" today)))
+    (is (nil? (days/parse-day "13/6" today)))))

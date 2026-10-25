@@ -170,3 +170,44 @@
   (if (neg? (compare day day0))
     (- (working-days-between day day0))
     (working-days-between day0 day)))
+
+(defn- month-index
+  "1 to 12 for a month typed as a number or as a name's first three
+  letters, in any case; nil otherwise."
+  [text]
+  (or (let [n (parse-long text)] (when (and n (<= 1 n 12)) n))
+      (when (<= 3 (count text))
+        (let [prefix (str/capitalize (subs text 0 3))]
+          (first (keep-indexed (fn [i m] (when (= m prefix) (inc i))) month-names))))))
+
+(defn- valid-day
+  "The ISO day for y, m, d when they name a real day, else nil."
+  [y m d]
+  (let [day (str y "-" (two-digits m) "-" (two-digits d))]
+    (when (and (<= 1 m 12) (<= 1 d 31) (= day (iso (day-number day))))
+      day)))
+
+(defn parse-day
+  "The ISO day the owner typed, or nil when text is not a day. A full
+  ISO day is taken as it is. Without a year, as \"nov 6\", \"6 nov\",
+  \"11-06\" or \"11/6\", it is the next such day on or after today.
+  Two numbers are month then day, as in ISO; a month written as a name
+  may come first or second (research-visual, \"Date formats\")."
+  [text today]
+  (let [t (str/trim (str/lower-case (or text "")))
+        [a b c] (str/split t #"[\s/\-\.]+")]
+    (cond
+      (str/blank? t) nil
+      (and c (re-matches #"\d{4}" a))
+      (when-let [m (month-index b)] (when-let [d (parse-long c)] (valid-day (parse-long a) m d)))
+      (and b (nil? c))
+      (let [[m d] (if (parse-long b)
+                    [(month-index a) (parse-long b)]
+                    [(month-index b) (parse-long a)])
+            year (parse-long (subs today 0 4))]
+        (when (and m d)
+          (->> [year (inc year)]
+               (keep #(valid-day % m d))
+               (filter #(<= 0 (compare % today)))
+               first)))
+      :else nil)))

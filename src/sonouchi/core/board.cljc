@@ -89,13 +89,17 @@
             (concat waited estimated))))
 
 (defn search-texts
-  "Task id to the text it is found by: its title, and whom its open wait
-  is on."
+  "Task id to the text it is found by: its title, whom its open wait is
+  on, and the asker and words of each request it serves."
   [entities]
   (let [waits (open-waits entities)]
     (into {} (for [[id task] (tasks entities)]
-               [id (str/join " " (keep identity [(:task/title task)
-                                                 (get-in waits [id :wait/on])]))]))))
+               [id (str/join " " (keep identity
+                                       (concat [(:task/title task)
+                                                (get-in waits [id :wait/on])]
+                                               (for [r (sort-by str (:task/serves task))
+                                                     k [:request/asker :request/words]]
+                                                 (get-in entities [r k])))))]))))
 
 (defn not-estimated
   "Task id to the id of the task without an estimate that keeps it off

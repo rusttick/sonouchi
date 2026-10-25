@@ -26,23 +26,37 @@
    "A" [:action/set-after]
    "X" [:command/mark]
    "R" [:command/open-replace]
+   "V" [:action/set-serves]
+   "P" [:command/open-promise]
    "/" [:command/query]
    "[" [:command/day-back]
    "]" [:command/day-forward]
    "1" [:command/show-stand-up]
    "2" [:command/show-schedule]
-   "3" [:command/show-record]})
+   "3" [:command/show-record]
+   "4" [:command/show-requests]})
 
 (def ^:private schedule-keys
   "Chord to command when no field has the focus, on the schedule: the
   board's acts that ux-journey's Stage 5 gives it, t, a, x, s and f, on
   a cursor that moves up and down, and the frame's keys."
-  (select-keys board-keys ["ArrowUp" "ArrowDown" "S" "F" "T" "A" "X" "/" "[" "]" "1" "2" "3"]))
+  (select-keys board-keys ["ArrowUp" "ArrowDown" "S" "F" "T" "A" "X" "/" "[" "]" "1" "2" "3" "4"]))
+
+(def ^:private request-keys
+  "Chord to command when no field has the focus, on the requests screen
+  (ux-requests, \"The requests screen\"): a cursor that moves up and
+  down the rows, n, p, v, c, e and x on the request under it, and the
+  frame's keys."
+  (merge (select-keys board-keys ["ArrowUp" "ArrowDown" "V" "P" "/" "[" "]" "1" "2" "3" "4"])
+         {"N" [:command/open-request]
+          "C" [:action/close-request]
+          "E" [:command/open-request-words]
+          "X" [:command/mark-request]}))
 
 (def ^:private record-keys
   "Chord to command when no field has the focus, on the record screen:
   only the keys that choose a screen, since nothing there has a cursor."
-  (select-keys board-keys ["1" "2" "3"]))
+  (select-keys board-keys ["1" "2" "3" "4"]))
 
 (def ^:private reasons
   {"1" [:command/reason-person]
@@ -66,6 +80,13 @@
    :command/show-stand-up "1"
    :command/show-schedule "2"
    :command/show-record "3"
+   :command/show-requests "4"
+   :action/set-serves "v"
+   :command/open-promise "p"
+   :command/open-request "n"
+   :action/close-request "c"
+   :command/open-request-words "e"
+   :command/mark-request "x"
    :command/clear "Esc"
    :command/next-line "Enter"})
 
@@ -103,9 +124,9 @@
   or nil to leave the key to the browser.
 
   focus is nil when no input has the focus; [:query text] in the query
-  bar; [:field kind text] in a card's field, where kind is :title,
-  :estimate, :wait, or :wait-reason while the wait's reason is not yet
-  chosen; or [:line i part text] on line i of the replacement display,
+  bar; [:field kind text] in a card's or a row's field, where kind is
+  :title, :estimate, :wait, :wait-reason while the wait's reason is not
+  yet chosen, :request, :promise or :request-words; or [:line i part text] on line i of the replacement display,
   part being :title or :estimate.
 
   Escape always clears. Undo and redo act only when no input with text
@@ -121,6 +142,7 @@
       (nil? focus) (case screen
                      :stand-up (board-keys chord-name)
                      :schedule (schedule-keys chord-name)
+                     :requests (request-keys chord-name)
                      :record (record-keys chord-name)
                      nil)
       (= :query where) (when (and (= "Enter" chord-name) (not (str/blank? text)))

@@ -10,6 +10,7 @@
             [sonouchi.core.days :as days]
             [sonouchi.core.estimates :as estimates]
             [sonouchi.core.keys :as keys]
+            [sonouchi.core.requests :as requests]
             [sonouchi.core.screen :as screen]))
 
 (def ^:private slow-ms
@@ -17,7 +18,7 @@
   100)
 
 (def ^:private screen-names
-  {:stand-up "STAND-UP" :replace "REPLACE" :schedule "PLAN" :record "RECORD"})
+  {:stand-up "STAND-UP" :replace "REPLACE" :schedule "PLAN" :record "RECORD" :requests "REQUESTS"})
 
 (def ^:private reason-names
   {:person "a person" :outside-party "an outside party" :not-in-plan "not in the plan"})
@@ -55,7 +56,12 @@
    {:screen :record
     :command :command/show-record
     :title "Record"
-    :purpose "Save the record to a file, or replace it with one from a file."}])
+    :purpose "Save the record to a file, or replace it with one from a file."}
+   {:screen :requests
+    :command :command/show-requests
+    :title "Requests"
+    :purpose (str "What have I promised, to whom, and when will each be done? "
+                  "Record requests and promises, and say which tasks serve which.")}])
 
 (defn- menu
   "The mascot and the screen's name, as one button that opens and closes
@@ -157,9 +163,9 @@
                        attrs)])
 
 (defn- card-field
-  "The one small field open on a card: a correction, an estimate or a
-  wait."
-  [platform {:field/keys [kind text] :problem/keys [message] chosen :wait/reason}]
+  "The one small field open on a card or a row: a correction, an
+  estimate, a wait, a promise, or a request's asker and words."
+  [{:keys [platform today]} {:field/keys [kind text] :problem/keys [message] chosen :wait/reason}]
   [:div.field
    (case kind
      :estimate [:span
@@ -171,6 +177,12 @@
                (field-input kind text {:placeholder "whom" :size 16})]
               (field-input :wait-reason "" {:placeholder "1 person · 2 outside party · 3 not in the plan"
                                             :size 40}))]
+     :promise [:span "promised for "
+               (field-input kind text {:placeholder "nov 6" :size 12})
+               (when-let [day (days/parse-day text today)]
+                 [:span.echo (str " " (days/label day))])]
+     :request [:span (field-input kind text {:placeholder "who: what was asked" :size 50})]
+     :request-words [:span (field-input kind text {:size 50})]
      nil)
    [:span.keys (hint platform [[:command/next-line "record"] [:command/clear "cancel"]])]
    (when message [:span.problem message])])
@@ -183,18 +195,36 @@
    [:command/open-title "edit"]
    [:command/open-estimate "estimate"]
    [:action/set-after "after"]
+   [:action/set-serves "serves"]
    [:command/mark "mark"]
    [:command/open-replace "replace"]])
 
 (defn- wait-line
-  [{:wait/keys [reason on began]}]
+  "On whom the task waits and since when, and the day they promised,
+  if any (ux-requests, \"The board\")."
+  [{:wait/keys [reason on began]} promised]
   [:div.wait
    (if (= :not-in-plan reason)
      "waiting: not in the plan"
-     (str "waiting on " on " since " (days/label began)))])
+     (str "waiting on " on " since " (days/label began)
+          (when promised (str ", promised " (days/label (:promise/day promised))))))])
+
+(defn- serves-line
+  "Who is expecting the task, and by when (Bellotti 2004, ux-requests,
+  \"The board\"): \"for Tanaka · by Fri Nov 6\". Nil when the task
+  serves no open request."
+  [task {:keys [requests promises]}]
+  (let [open-ids (->> (:task/serves task)
+                      (filter #(and (requests %) (not (:request/closed (requests %)))))
+                      (sort-by #(:request/asker (requests %))))]
+    (when (seq open-ids)
+      [:div.for
+       (str "for " (str/join ", " (map #(:request/asker (requests %)) open-ids))
+            (when-let [day (->> open-ids (keep #(:promise/day (promises %))) sort first)]
+              (str " · by " (days/label day))))])))
 
 (defn- card
-  [id {:keys [entities latest waits recorded cursor marked changed platform field]}]
+  [id {:keys [entities latest waits recorded cursor marked changed platform field] :as view}]
   (let [task (entities id)
         here? (= id cursor)
         field-here (when (= id (:field/task field)) field)]
@@ -211,11 +241,13 @@
         (field-input :title (:field/text field-here) {:size 40})
         [:span.words (:task/title task)])]
      (when-not (latest id) [:div.no-estimate "no estimate"])
-     (when-let [wait (waits id)] (wait-line wait))
+     (serves-line task view)
+     (when-let [wait (waits id)] (wait-line wait (get-in view [:promises (:patch/entity wait)])))
      (when (and field-here (not= :title (:field/kind field-here)))
-       (card-field platform field-here))
+       (card-field view field-here))
      (when (and here? (not field-here))
-       [:div.keys (hint platform card-keys)])
+       [:div.keys (hint platform (cond-> card-keys
+                                   (waits id) (conj [:command/open-promise "promised"])))])
      (when (= :title (:field/kind field-here))
        [:div.keys (hint platform [[:command/next-line "record"] [:command/clear "cancel"]])])]))
 
@@ -339,10 +371,21 @@
   (when (seq (:task/after task))
     (str "after " (str/join ", " (sort (map #(:task/title (entities %)) (:task/after task)))))))
 
+(defn- waiting-text
+  "What the plan's row says of an open wait with a promise: whom, the
+  day promised, and \"still waiting\" once it has passed (ux-requests,
+  \"The plan\")."
+  [{:keys [waits promises today]} id]
+  (when-let [wait (waits id)]
+    (when-let [day (:promise/day (promises (:patch/entity wait)))]
+      (if (pos? (compare today day))
+        (str "promised " (days/label day) ", still waiting")
+        (str "waiting on " (:wait/on wait) ", promised " (days/label day))))))
+
 (defn- schedule-row
   "One task's row, and under it the field open on it, if any. Its
   estimate is hidden while the field is open (ux-journey, Estimating)."
-  [id {:keys [entities latest field platform times critical today] :as view}]
+  [id {:keys [entities latest field times critical today] :as view}]
   (let [{:schedule/keys [start-day finish-day]} (times id)
         task (entities id)
         field-here (when (= id (:field/task field)) field)]
@@ -356,14 +399,14 @@
       [:td.estimate (when-not field-here (estimates/show (latest id)))]
       [:td.dates (str (days/label (board/start-day today start-day))
                       " – " (days/label (board/last-day today finish-day)))]
-      [:td.after (after-text entities task)]]
+      [:td.after (str/join " · " (keep identity [(after-text entities task) (waiting-text view id)]))]]
      (when field-here
        [[:tr.field-row {:replicant/key [id :field]}
          [:td] [:td]
-         [:td {:colspan 4} (card-field platform field-here)]]]))))
+         [:td {:colspan 4} (card-field view field-here)]]]))))
 
 (defn- not-estimated-line
-  [id stopper {:keys [entities field platform] :as view}]
+  [id stopper {:keys [entities field] :as view}]
   (let [field-here (when (= id (:field/task field)) field)]
     [:li {:replicant/key id
           :class (line-class id view nil)
@@ -372,7 +415,7 @@
      [:span.words (:task/title (entities id))]
      (when (not= id stopper)
        [:span.quiet (str " · after " (:task/title (entities stopper)))])
-     (when field-here (card-field platform field-here))]))
+     (when field-here (card-field view field-here))]))
 
 (defn- schedule-view
   "The schedule: the rows and the tasks not estimated that the query
@@ -414,6 +457,109 @@
             [:p.empty "No task comes after another yet: mark the tasks it comes after with "
              [:kbd (keys/label platform :command/mark)] ", then "
              [:kbd (keys/label platform :action/set-after)] " on the task."])])]))
+
+;; The requests screen (ux-requests)
+
+(def ^:private request-keys
+  [[:command/open-request "new"]
+   [:command/open-promise "promise"]
+   [:action/set-serves "serves"]
+   [:action/close-request "close"]
+   [:command/open-request-words "edit"]
+   [:command/mark-request "mark"]])
+
+(defn- finish-text
+  [today finish]
+  (cond
+    (number? finish) (days/label (board/last-day today finish))
+    (= :done finish) "all tasks done"
+    :else nil))
+
+(defn- request-row
+  "One open request's row: asker, asked, words, promised, when it will
+  be done, how many tasks serve it, and its slack; and under it the
+  field open on it, if any. A request with no slack or no tasks is
+  urgent, the one thing that pops out (V3)."
+  [id {:keys [requests promises board times today cursor marked-requests field] :as view}]
+  (let [{:request/keys [asker words asked]} (requests id)
+        promised (:promise/day (promises id))
+        n (count (requests/serving board id))
+        finish (requests/finish-day board times id)
+        slack (when (and promised (number? finish)) (requests/slack today finish promised))
+        urgent? (or (zero? n) (and slack (<= slack 0)))
+        field-here (when (= id (:field/request field)) field)]
+    (cons
+     [:tr {:replicant/key id
+           :class (str/join " " (keep identity [(when (= id cursor) "cursor")
+                                                (when (marked-requests id) "marked")
+                                                (when urgent? "urgent")]))
+           :on {:click [:command/cursor-request id]}}
+      [:td.mark (if (marked-requests id) "✗" "")]
+      [:td.asker [:span.words asker]]
+      [:td.dates (days/label asked)]
+      [:td.words (or words "")]
+      [:td.dates (if (and promised (not= :promise (:field/kind field-here))) (days/label promised) "—")]
+      [:td.dates (or (finish-text today finish) (if (zero? n) "no tasks" "not estimated"))]
+      [:td.estimate (str n)]
+      [:td.slack (when slack (requests/slack-words slack))]]
+     (when field-here
+       [[:tr.field-row {:replicant/key [id :field]}
+         [:td] [:td {:colspan 7} (card-field view field-here)]]]))))
+
+(defn- serving-list
+  "The tasks that serve the request under the cursor, in the plan's
+  order, each with its state and its finish; the ones the owner could
+  work on today for it are marked, as the critical path is."
+  [state id {:keys [entities requests board times today latest shown]}]
+  (let [ids (requests/serving board id)
+        ordered (concat (filter ids (screen/rows state entities latest))
+                        (filter ids (screen/shown-not-estimated state entities latest shown))
+                        (sort-by str (filter #(:task/finished (board %)) ids)))
+        now (requests/next-to-do board times id)
+        {:request/keys [asker words]} (requests id)]
+    [:div.serving
+     [:h3 (str asker " asked" (when words (str " for " words)))]
+     (if (seq ids)
+       [:ul
+        (for [tid ordered
+              :let [task (board tid)
+                    finish (:schedule/finish-day (times tid))]]
+          [:li {:replicant/key tid :class (when (now tid) "next")}
+           [:span.bar (if (now tid) "▌" "")]
+           [:span.state (state-names (board/column task))]
+           [:span.words (:task/title task)]
+           [:span.quiet (cond
+                          (:task/finished task) (str " " (days/label (:task/finished task)))
+                          finish (str " " (days/label (board/last-day today finish)))
+                          :else " no estimate")]])]
+       [:p.quiet "No tasks serve it yet: mark tasks on the board with "
+        [:kbd (keys/label (:state/platform state) :command/mark)] ", then "
+        [:kbd (keys/label (:state/platform state) :action/set-serves)] " here."])]))
+
+(defn- requests-view
+  "The requests screen: the open requests as a table, the field for a
+  new request, and the tasks serving the request under the cursor."
+  [state {:keys [entities cursor field platform latest] :as view}]
+  (let [ids (screen/request-ids state entities)
+        {:schedule/keys [times]} (screen/scheduled state entities latest)
+        view (assoc view
+                    :board (board/tasks entities)
+                    :times (or times {})
+                    :today (screen/today state))]
+    [:section.requests
+     [:p.keys (hint platform request-keys)]
+     (when (= :request (:field/kind field))
+       [:div.new-request (card-field view field)])
+     (if (seq ids)
+       [:table.rows
+        [:thead
+         [:tr [:th] [:th "asker"] [:th "asked"] [:th "words"] [:th "promised"] [:th "finishes"]
+          [:th "tasks"] [:th "slack"]]]
+        [:tbody (mapcat #(request-row % view) ids)]]
+       (when-not field
+         [:p.empty "No open requests. Press " [:kbd (keys/label platform :command/open-request)]
+          " to record what someone asked of you."]))
+     (when cursor (serving-list state cursor view))]))
 
 ;; The record: export and import
 
@@ -466,6 +612,10 @@
                           (fn [id] (contains? (days id) day)))
               :cursor cursor
               :marked (set (:state/marked state))
+              :marked-requests (set (:state/marked-requests state))
+              :requests (requests/all entities)
+              :promises (requests/promises (:state/log state) entities)
+              :today (screen/today state)
               :changed (screen/changed-by-last-act state entities)}]
     [:div.page
      (frame state (count shown) (count (board/tasks entities)))
@@ -474,6 +624,7 @@
       (case screen
         :replace (replace-view state entities)
         :record (record-view state entities)
+        :requests (requests-view state view)
         :schedule (schedule-view state (update view :changed into (screen/moved-by-last-act state)))
         (board-view cols view))]
      (footer state)]))

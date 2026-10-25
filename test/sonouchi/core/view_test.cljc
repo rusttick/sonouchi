@@ -25,6 +25,11 @@
         :when (and (vector? node) (= :kbd (first node)))]
     (last node)))
 
+(defn- tagged
+  "Every hiccup node with this tag, such as :div.for."
+  [hiccup tag]
+  (filter #(and (vector? %) (= tag (first %))) (tree-seq coll? seq hiccup)))
+
 (defn- nodes-with-class
   [hiccup class-name]
   (for [node (tree-seq coll? seq hiccup)
@@ -80,15 +85,15 @@
     (let [closed (page empty-state)
           opened (page (run empty-state [:command/toggle-menu]))
           titles (keep :title (filter map? (tree-seq coll? seq closed)))]
-      (is (some #{"Choose a view: 1 Stand-up · 2 Plan · 3 Record"} titles) "the hover text")
+      (is (some #{"Choose a view: 1 Stand-up · 2 Plan · 3 Record · 4 Requests"} titles) "the hover text")
       (let [button (first (filter #(and (vector? %) (= :button.app (first %)))
                                   (tree-seq coll? seq closed)))]
         (is (some #{"STAND-UP"} (texts button)) "the screen's name is part of the menu button"))
       (is (some #{[:command/toggle-menu]} (handlers closed)))
       (is (not (some #{[:command/show-schedule]} (handlers closed))) "no buttons for the screens")
       (is (not (some #{"Plan"} (texts closed))))
-      (is (= ["1" "Stand-up" "2" "Plan" "3" "Record"]
-             (filter #{"1" "2" "3" "Stand-up" "Plan" "Record"} (texts opened))))
+      (is (= ["1" "Stand-up" "2" "Plan" "3" "Record" "4" "Requests"]
+             (filter #{"1" "2" "3" "4" "Stand-up" "Plan" "Record" "Requests"} (texts opened))))
       (is (some #(re-find #"^What comes after what" %) (texts opened)))
       (is (some #{[:command/show-stand-up]} (handlers opened)))
       (is (some #{[:command/show-schedule]} (handlers opened)))
@@ -125,7 +130,7 @@
     (is (= 1 (count (nodes-with-class hiccup "cursor"))))
     (is (contains? shown "✓"))
     (testing "the keys beside the cursor, each in a key cap and before what it does"
-      (is (= ["s" "f" "w" "b" "e" "t" "a" "x" "r"]
+      (is (= ["s" "f" "w" "b" "e" "t" "a" "v" "x" "r"]
              (key-caps (first (nodes-with-class hiccup "cursor")))))
       (is (= [:span.hint [:kbd "s"] " started"]
              (first (filter #(and (vector? %) (= :span.hint (first %))) (tree-seq coll? seq hiccup))))))
@@ -261,3 +266,65 @@
 (deftest handlers-are-data
   (is (every? vector? (handlers (page (add empty-state "one")))))
   (is (every? qualified-keyword? (map first (handlers (page (add empty-state "one")))))))
+
+(deftest the-requests-screen
+  (let [state (add empty-state "design" "build back end" "write it up")
+        a (titled state "design") b (titled state "build back end") c (titled state "write it up")
+        estimate (fn [s i n] (run s [:command/cursor i] [:command/open-estimate] [:command/typed :field (str n)] [:command/record]))
+        state (-> state (estimate a 3) (estimate b 5)
+                  (run [:command/cursor a] [:command/mark] [:command/cursor b] [:action/set-after]))
+        asked (run state [:command/show-requests] [:command/open-request]
+                   [:command/typed :field "Tanaka: the integrated system"] [:command/record]
+                   [:command/open-request] [:command/typed :field "Sato: the write-up"] [:command/record])
+        [tanaka sato] (screen/request-ids asked (screen/current asked))
+        served (run asked [:command/show-stand-up] [:command/cursor a] [:command/mark] [:command/cursor b] [:command/mark]
+                    [:command/show-requests] [:command/cursor-request tanaka] [:action/set-serves]
+                    [:command/show-stand-up] [:command/cursor c] [:command/mark]
+                    [:command/show-requests] [:command/cursor-request sato] [:action/set-serves]
+                    [:command/cursor-request tanaka])
+        hiccup (page served)
+        shown (set (texts hiccup))]
+    (is (contains? shown "REQUESTS"))
+    (testing "the empty screen says what to press"
+      (is (some #{"No open requests. Press "} (texts (page (run state [:command/show-requests]))))))
+    (testing "one row per open request, asked first listed first"
+      (is (= ["Tanaka" "Sato"] (map #(first (texts (last %))) (tagged hiccup :td.asker)))))
+    (is (contains? shown "the integrated system"))
+    (is (contains? shown "Fri Oct 23") "asked on the recording day")
+    (is (contains? shown "Wed Nov 4") "A then B finish on the Wednesday")
+    (is (contains? shown "2") "two tasks serve Tanaka's")
+    (is (contains? shown "not estimated") "Sato's task has no estimate")
+    (is (contains? shown "—") "nothing promised yet")
+    (testing "the tasks serving the cursor's request, with the one to do now marked"
+      (is (contains? shown "Tanaka asked for the integrated system"))
+      (let [items (map #(texts (drop 2 %)) (tagged hiccup :li))]
+        (is (= ["▌" "To do" "design" " Wed Oct 28"] (first items)) "A can start today and sets the chain")
+        (is (= ["" "To do" "build back end" " Wed Nov 4"] (second items)))))
+    (testing "a promise, then slack; late pops out"
+      (let [late (page (run served [:command/open-promise] [:command/typed :field "oct 30"] [:command/record]))
+            t (set (texts late))]
+        (is (contains? t "Fri Oct 30"))
+        (is (contains? t "3 working days late"))
+        (is (= 1 (count (nodes-with-class late "urgent"))) "Tanaka's is late; Sato's has a task and no promise")
+        (let [fine (set (texts (page (run served [:command/open-promise] [:command/typed :field "nov 9"] [:command/record]))))]
+          (is (contains? fine "can slip 3 working days")))))
+    (testing "the promise field echoes the day it understood"
+      (let [t (texts (page (run served [:command/open-promise] [:command/typed :field "nov 6"])))]
+        (is (some #{" Fri Nov 6"} t))
+        (is (some #{:input#field} (tree-seq coll? seq (page (run served [:command/open-promise])))))))
+    (testing "the card says who is expecting it, and by when"
+      (let [board (page (run served [:command/show-stand-up]))
+            lines (map texts (tagged board :div.for))]
+        (is (some #{["for Tanaka"]} lines))
+        (let [promised (page (run served [:command/open-promise] [:command/typed :field "nov 6"] [:command/record]
+                                  [:command/show-stand-up]))]
+          (is (some #{["for Tanaka · by Fri Nov 6"]} (map texts (tagged promised :div.for)))))))
+    (testing "a promise on a wait shows on the card and on the plan"
+      (let [waiting (run served [:command/show-stand-up] [:command/cursor a] [:command/open-wait] [:command/reason-person]
+                         [:command/typed :field "Ito"] [:command/record]
+                         [:command/open-promise] [:command/typed :field "nov 6"] [:command/record])]
+        (is (some #{"waiting on Ito since Fri Oct 23, promised Fri Nov 6"} (texts (page waiting))))
+        (is (some #{"p"} (key-caps (first (nodes-with-class (page waiting) "cursor")))) "p is offered on a waiting card")
+        (is (some #{"waiting on Ito, promised Fri Nov 6"} (texts (page (run waiting [:command/show-schedule])))))
+        (let [passed (page (run (assoc waiting :state/now #inst "2026-11-10T01:00:00Z") [:command/show-schedule]))]
+          (is (some #{"promised Fri Nov 6, still waiting"} (texts passed))))))))

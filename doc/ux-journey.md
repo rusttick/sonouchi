@@ -127,7 +127,7 @@ The same on every screen (V9):
   view whenever `s`, `f`, `w` or `b` is pressed (V8).
 - **The actions,** in a flat list that is always in the same order,
   each with its key: `1` the stand-up board, `2` the plan, `3` the
-  record, where the log is exported to a file and imported from one.
+  record, `4` the requests ([ux-requests.md](ux-requests.md)), where the log is exported to a file and imported from one.
   Export and import are seldom used, so they are a screen of their own
   and not in the frame; the screen shows how many acts and tasks the
   record holds and the days it spans, so that one file can be told
@@ -203,6 +203,8 @@ click. The keys are shown beside the cursor (V11):
 | `t` | estimate: see "Estimating", below | loses "no estimate" |
 | `a` | the task comes after exactly the marked tasks; with none marked, after none. See "Comes after", below | keeps its place |
 | `x` | mark, or unmark | shows a mark |
+| `v` | the task serves exactly the marked requests ([ux-requests.md](ux-requests.md)) | gets its "for" line |
+| `p` on a waiting card | the day the other party promised | the wait line says it |
 | `r` | replace the marked cards, or the card under the cursor | opens the replacement display |
 | ⌘Z, ⇧⌘Z | undo, redo (Ctrl+Z and Ctrl+Y on Windows and Linux) | as before the act |
 
