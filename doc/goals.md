@@ -2,16 +2,17 @@
 
 ## What sonouchi is
 
-sonouchi is the browser client for soonish, the project estimation
-server. soonish's `doc/design3.md` is the theory: forecasts of when
-work will finish, learned from a record of estimates and outcomes,
-built up in steps. design3 leaves one thing out on purpose: display
-and interaction. That is sonouchi's job.
+sonouchi is a project estimation app. [design3.md](design3.md) is the
+theory: forecasts of when work will finish, learned from a record of
+estimates and outcomes, built up in steps. design3 leaves one thing
+out on purpose: display and interaction. sonouchi supplies both, as
+well as the model.
 
 So sonouchi is where the owner enters tasks, estimates and
 dependencies, records what actually happened, and sees the schedule
-and the forecast. The two repositories sit side by side, and sonouchi
-never changes soonish.
+and the forecast. The model and the interface are one project: the
+scheduler, from what was soonish, is in the same pure core as the
+views, and runs in the browser.
 
 ## The question it answers
 
@@ -118,15 +119,9 @@ There is no seed data; the owner enters every task by hand.
   censored, left out, or compared with the total of its replacements?
   The record keeps what all three need, and Step 1 chooses by
   out-of-time score (design3, 3.1).
-- **Where the schedule is computed.** soonish's forward pass is in
-  `src/soonish/core/schedule.clj`. Until there is a server, the
-  browser needs it too. It could be shared as `.cljc`, or copied with
-  a check that keeps the copies in step. This blocks version 0, and is
-  the owner's to decide, because it is about code shared between the
-  repositories.
 
-The rest are in [architecture.md](architecture.md), "What soonish will
-need".
+The rest are in [architecture.md](architecture.md), "Open questions
+about the model".
 
 ## How it is made
 
@@ -137,7 +132,8 @@ need".
   down. Where the research is silent, sonouchi records what design3
   needs to decide later by out-of-time score.
 - **In the browser alone, first.** The record is held in the browser,
-  with no server, until the interface shows what soonish must provide.
+  with no server, until the interface shows what a server must
+  provide.
 - **Sketch first, then research.** Each display is chosen by drawing
   candidates on the running example and comparing them. Research is
   looked up to answer a specific question about a sketch. The rules in
@@ -145,9 +141,9 @@ need".
   steps to finish before one.
 - **Tried by the owner on their own work,** as soon as version 0 can
   be used. What the trials show is written back into the design.
-- **The same language and rules as soonish.** ClojureScript, values
-  and pure functions, a thin shell around a pure core, and facts
-  appended rather than overwritten ([CONTRIBUTING.md](../CONTRIBUTING.md)).
+- **One set of rules.** Clojure and ClojureScript, values and pure
+  functions, thin shells around one pure core, and facts appended
+  rather than overwritten ([CONTRIBUTING.md](../CONTRIBUTING.md)).
 
 ## Parked
 

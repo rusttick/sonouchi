@@ -6,7 +6,7 @@ These are findings only. The rules sonouchi's displays follow, V1 to
 V17, are in [ux-design.md](ux-design.md).
 
 Sources are cited by author and year, and listed at the end with a
-status word as in soonish's `doc/design3.md`.
+status word as in `doc/design3.md`.
 
 # Part 1. Seeing
 
@@ -280,7 +280,7 @@ confirmation for severe actions that cannot be reversed.
   with 490 to 3,744 people each. On 0–100 sliders, more people chose
   whatever value the slider started at (25, 50, 75 or 100). On 7- and
   21-point scales the starting value had no consistent effect.
-- **Anchoring** in general is in soonish's `doc/design3.md` (Tversky
+- **Anchoring** in general is in `doc/design3.md` (Tversky
   1974, Aranda 2005).
 
 # Part 4. Finding things

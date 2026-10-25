@@ -195,7 +195,7 @@ A task that appears in two groups looks identical in both. Why: Okoe
   no recorded act for some days are listed, for the owner to confirm or
   correct. Lapsing and resuming are normal (Epstein 2015, workflow 8),
   and design 3 needs complete outcomes.
-- **Uncertain dates as quantile dotplots,** once soonish forecasts
+- **Uncertain dates as quantile dotplots,** once the core forecasts
   distributions (Kay 2016, Fernandes 2018, workflow 7).
 
 ## How each part is designed
@@ -205,7 +205,7 @@ Each part of the interface goes through these steps before it is built.
 1. **The question** it answers, and what the owner does with the answer
    (V1).
 2. **The facts** it reads, and the facts each act appends. These lists
-   feed [architecture.md](architecture.md), "What soonish will need".
+   feed [architecture.md](architecture.md), "Open questions about the model".
 3. **The display,** chosen by cognitive fit (V1) and checked against V2
    to V5 and V17.
 4. **The acts,** each with its key (V10 to V14).

@@ -14,11 +14,20 @@ Nothing is built until these are read, in this order:
 - `doc/research-visual.md`
 - `doc/todo.md`
 
-## Owner: the one decision that blocks version 0
+## Owner: finish the merge
 
-- **Where the schedule is computed:** soonish's forward pass shared as
-  `.cljc`, or copied with a check. It is about code shared between the
-  repositories.
+- Apply [merge-guard-rails.md](merge-guard-rails.md), run `bin/check`,
+  then delete that document and the `../soonish` folder.
+
+## Next, after the merge
+
+- **Time in the data.** Instants and millisecond durations, in the
+  form Clojure uses on both platforms. Working days appear only in
+  what the owner is asked and shown. Settle from design3 what a
+  duration measures, working time or elapsed time, since a 3-day task
+  started on a Friday is 5 days on the clock. Then replace the
+  scheduler's day attributes, and the ISO days planned in
+  architecture.md, with the new attributes.
 
 ## Design
 
@@ -32,11 +41,12 @@ Nothing is built until these are read, in this order:
 
 ## Build version 0, in order
 
-- **Days.** `sonouchi.core.days`: a day as an ISO string, the day
-  before and after, whether a day is a working day, the last working
-  day before a given day, and the working days between two days, from
-  `:state/now` and `:state/utc-offset-minutes`. Pure arithmetic,
-  tested on both platforms, with no host calls.
+- **Days.** `sonouchi.core.days`: the presentation of time in working
+  days, as settled by "Time in the data": the day before and after,
+  whether a day is a working day, the last working day before a given
+  day, and the working days between two days, from `:state/now` and
+  `:state/utc-offset-minutes`. Pure arithmetic, tested on both
+  platforms, with no host calls.
 - **Register the attributes** for version 0 in
   `src/sonouchi/core/attrs.cljc`, from architecture.md. Owner: it is a
   guard-rail file.
@@ -57,9 +67,10 @@ Nothing is built until these are read, in this order:
   nothing uses any more.
 - **Comes after.** `a`, with the check for cycles, and carrying a
   replaced task's successors over to its replacements.
-- **The schedule.** `sonouchi.core.schedule`, as decided above, and the
-  display chosen from the sketch, `2` in the frame. Test it on
-  design3's running example: A 0–3, B 3–8, C 3–7, D 8–10, E 10–13.
+- **The schedule.** In `sonouchi.core.schedule`, the backward pass and
+  the critical path, and the board's tasks turned into its input; then
+  the display chosen from the sketch, `2` in the frame. The forward
+  pass is built and tested on design3's running example.
 - **Measure** a release build against V12's 0.1 s, with a few hundred
   tasks, including building the search index when the page opens and
   computing the schedule after each act.
@@ -68,8 +79,8 @@ Nothing is built until these are read, in this order:
 
 ## Version 1
 
-- The forecast: design3's Step 1 in soonish, and its display in
-  sonouchi as a quantile dotplot with P50 and P80, beside the owner's
+- The forecast: design3's Step 1 in the core, and its display as a
+  quantile dotplot with P50 and P80, beside the owner's
   estimate. Every forecast shown is kept.
 
 ## Parked until version 1 is in use

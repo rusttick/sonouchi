@@ -7,7 +7,7 @@ shown. These are findings only. What sonouchi makes of them is in
 [ux-design.md](ux-design.md).
 
 Sources are cited by author and year, and listed at the end with a
-status word as in soonish's `doc/design3.md`.
+status word as in `doc/design3.md`.
 
 ## 1. How people actually manage their own tasks
 
@@ -106,7 +106,7 @@ quick analysis by a designer. Two of its dimensions:
   for it removed these effects, even before the goal was met. A
   follow-up paper by the same authors (2012) warns that a specific plan
   can also make people closed-minded about better routes.
-- **Kruger 2004** (in soonish's `doc/design3.md`): listing a task's
+- **Kruger 2004** (in `doc/design3.md`): listing a task's
   parts makes its estimate longer and more realistic.
 
 ## 4. One record, several views
@@ -267,7 +267,7 @@ directly needs time tracking. I found no study that compares the two
 questions for interleaved work.
 
 **Recording costs decide whether records exist.** Jørgensen 2004 (in
-soonish's `doc/design3.md`) found outcome records missing in 97 of 100
+`doc/design3.md`) found outcome records missing in 97 of 100
 projects, where recording cost more effort than it saved. Recalled
 durations are unreliable (Roy 2005, in `doc/design3.md`, and Bellotti
 2004 above).
@@ -343,7 +343,7 @@ from abstracts or publisher pages by web search on 2026-10-18;
   Beyth-Marom, R. "Folder versus tag preference in personal
   information management." Journal of the American Society for
   Information Science and Technology 64(10), 1995–2012. checked
-- Buehler 1994. See soonish's `doc/design3.md`.
+- Buehler 1994. See `doc/design3.md`.
 - Cheng 2015. Cheng, J., Teevan, J., Iqbal, S., Bernstein, M. "Break
   it down: a comparison of macro- and microtasks." Proceedings of CHI
   2015, 4061–4064. checked
@@ -377,7 +377,7 @@ from abstracts or publisher pages by web search on 2026-10-18;
   "Don't take my folders away! Organizing personal information to get
   things done." CHI 2005 extended abstracts. The finding was checked;
   the author list is unchecked
-- Jørgensen 2004. See soonish's `doc/design3.md`.
+- Jørgensen 2004. See `doc/design3.md`.
 - Jørgensen 2015. Jørgensen, M. "The effect of the time unit on
   software development effort estimates." SKIMA 2015. Figures read in
   an anonymised conference draft. read
@@ -394,7 +394,7 @@ from abstracts or publisher pages by web search on 2026-10-18;
   Schulze, F., Klemmer, S. "TaskGenies: automatically providing action
   plans helps people complete tasks." ACM TOCHI 20(5), article 27.
   checked
-- Kruger 2004. See soonish's `doc/design3.md`.
+- Kruger 2004. See `doc/design3.md`.
 - Li 2010. Li, I., Dey, A., Forlizzi, J. "A stage-based model of
   personal informatics systems." Proceedings of CHI 2010. The five
   stages were checked from secondary sources
@@ -414,14 +414,14 @@ from abstracts or publisher pages by web search on 2026-10-18;
   unfulfilled goals." Journal of Personality and Social Psychology
   101(4), 667–683. doi:10.1037/a0024192. The 2012 follow-up is
   "Committed but closed-minded", Social Cognition 30, 37–55. checked
-- McConnell 2006. See soonish's `doc/design3.md`.
+- McConnell 2006. See `doc/design3.md`.
 - Robertson 1998. Robertson, G., Czerwinski, M., Larson, K., Robbins,
   D., Thiel, D., van Dantzich, M. "Data Mountain: using spatial memory
   for document management." Proceedings of UIST 1998, 153–162. The
   follow-up is Czerwinski et al., INTERACT 1999. checked
 - Rogers 2003. Rogers, E. Diffusion of Innovations, fifth edition.
   Free Press. unchecked
-- Roy 2005. See soonish's `doc/design3.md`.
+- Roy 2005. See `doc/design3.md`.
 - Shipman 1994. Shipman, F., McCall, R. "Supporting knowledge-base
   evolution with incremental formalization." Proceedings of CHI 1994.
   checked

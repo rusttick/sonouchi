@@ -21,12 +21,15 @@ document, linked below. The coding rules are in
 - **The pure core** holds every rule: what an act appends, what the
   record means, what the schedule is, what the screen shows. It has no
   state, no clock, no host calls, and runs on the JVM and in the
-  browser alike, so it is tested on both and can move to soonish
-  unchanged.
+  browser alike, so it is tested on both, and the same scheduler
+  serves the browser and the command line.
 - **The shell** gathers inputs (a key press, the time, a new id), calls
   the core, and carries out effects: appending to the log, saving it,
   rendering. It is kept thin. See
   [architecture-shell.md](architecture-shell.md).
+- **The command line,** `sonouchi.main`, is a second shell, on the JVM.
+  It reads tasks from an EDN file and prints their schedule, as in
+  `clojure -M -m sonouchi.main examples/running-example.edn`.
 
 Event handlers in the hiccup are data: action vectors, which the
 shell's one dispatch function receives.
@@ -73,6 +76,7 @@ Built:
 | `sonouchi.core.keys` | which key does what on each platform, and how keys are shown | [architecture-interface.md](architecture-interface.md) |
 | `sonouchi.core.tasks` | adding tasks, and the tasks added today | [architecture-interface.md](architecture-interface.md) |
 | `sonouchi.core.view` | the page, as hiccup | [architecture-interface.md](architecture-interface.md) |
+| `sonouchi.core.schedule` | design3's Step 0: the forward pass of the critical path method, with actual days replacing computed ones, and cycles and unknown tasks described as data. The backward pass and the critical path are not written yet | this page |
 
 The page built today is a quick-entry field with the tasks added today
 under it. The screens in [ux-journey.md](ux-journey.md) replace it.
@@ -84,7 +88,7 @@ Planned for version 0:
 | `sonouchi.core.days` | days as ISO strings: the next and previous day, working days, and counting working days between two days |
 | `sonouchi.core.board` | each task's column, the order in a column, and whether a task has a record for the recording day |
 | `sonouchi.core.estimates` | each task's latest estimate, and whether design3 counts it |
-| `sonouchi.core.schedule` | the critical path method on the tasks: dates and the critical path. Shared with soonish or copied from it; see "What soonish will need" |
+| `sonouchi.core.schedule`, more | the backward pass, slack and the critical path; and the tasks on the board turned into the scheduler's input |
 
 ## The data for version 0
 
@@ -97,12 +101,18 @@ correctly on both platforms. The core does the calendar arithmetic
 itself, Monday to Friday being working days, until design 3 adds
 calendars (its step 6).
 
+This is to change. Time in the data is to be instants and durations in
+milliseconds, with working days only in what the owner is asked and
+shown ([todo.md](todo.md)). Until then, the scheduler counts working
+days from day 0, as its attributes `:task/estimate-days` and
+`:task/actual-start-day` say.
+
 **A task** is an entity with:
 
 | Attribute | Value |
 |---|---|
 | `:task/title` | the words on the post-it |
-| `:task/after` | the set of tasks it comes after: it cannot start until they finish. The name is soonish's |
+| `:task/after` | the set of tasks it comes after: it cannot start until they finish. Already in the scheduler |
 | `:task/started` | the day it started |
 | `:task/finished` | the day it finished |
 | `:task/worked-on` | the set of days it was worked on |
@@ -197,20 +207,12 @@ painted frame, and the footer shows it, flagged above 0.1 s (V12).
 Speed is judged on a release build. The schedule is computed again
 after every act, so it is part of what is timed.
 
-## What soonish will need
+## Open questions about the model
 
-The interface is designed first, and these questions about soonish's
+The interface is designed first, and these questions about the model's
 data are answered from what it turns out to need. The answers change
-Step 0 in soonish's `doc/design3.md`, which soonish owns. The first
-blocks version 0.
+Step 0 in [design3.md](design3.md).
 
-- **Where the schedule is computed.** Step 0's forward pass is in
-  soonish's `src/soonish/core/schedule.clj`, a pure function. In
-  `.cljc` it could run in the browser, within V12's 0.1 s. It could be
-  shared as a library or a git dependency, or copied with a check that
-  keeps the copies in step. The backward pass, which gives slack, is
-  not written yet. The owner decides, because it is about code shared
-  between the repositories.
 - **Replacement.** Step 0 has no facts for replacing tasks, and about
   nine tasks in ten are replaced. A replaced task's estimate can be
   censored at its replacement, left out, or compared with the total
@@ -219,9 +221,8 @@ blocks version 0.
   assumes that replacement says nothing about how long the task would
   have taken, which is doubtful, because tasks are replaced when they
   turn out different. Tasks that came after a replaced task come
-  after all of its replacements (ux-journey, Stage 4); soonish should
-  read them the same way.
-- **Decided in sonouchi, for soonish to match.** An unfinished task
+  after all of its replacements (ux-journey, Stage 4).
+- **Decided, for the scheduler to follow.** An unfinished task
   finishes today at the earliest, even past its estimate. A task with
   no estimate, and every task after it, has no dates.
 - **Days worked,** with the day and when it was recorded.
@@ -235,8 +236,9 @@ blocks version 0.
   asked costs effort, and effort is how outcome records go missing
   (Jørgensen 2004). Days worked are recorded anyway, so design3 can
   study effort later.
-- **The unit** is always working days, stored with each estimate, as
-  soonish's `:task/estimate-days` assumes.
+- **The unit** the owner is asked in is always working days, stored
+  with each estimate. How time is held in the data is a separate
+  question ([todo.md](todo.md)).
 - **Order.** How a manual order is recorded as appended facts, with an
   exact order only near the top.
 - **Requests.** Who asked, in what words, any promise, each report
@@ -246,11 +248,8 @@ blocks version 0.
   replaced by. Does a task with parts have an estimate of its own?
 - **Tags and attributes.** How often each is used. Bergman 2013
   predicts less than people expect.
-- **The contract.** The client sends facts and reads back computed
-  schedules, as EDN or Transit. The browser's log becomes the facts
-  sent.
-- **The registry.** soonish has its own, in
-  `src/soonish/core/attrs.clj`. One registry for both could be a shared
-  library, a git dependency, or a copy that a check keeps in step.
+- **A server,** if one is added: the browser sends its facts as EDN or
+  Transit, and the log becomes the facts sent. The schedule is
+  computed by the same core on both sides.
 - **Offline use.** The browser works offline now. Does it need to stay
   so?

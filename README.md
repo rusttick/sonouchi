@@ -8,18 +8,26 @@
 Every project planner knows that a perfect upfront estimate is a work of fiction.
 So our [mascot](https://en.wikipedia.org/wiki/Bake-danuki) is a reminder that project estimates are foolish illusions.
 
-Sonouchi is the browser client for [soonish](../soonish), the project estimation
-server. It is written in ClojureScript, renders with
-[Replicant](https://github.com/cjohansen/replicant), and is built with
+Sonouchi is a project estimation app built on probability. It starts
+as a plain network scheduler, records every estimate and outcome, and
+earns each later step through evidence that it forecasts better. The
+theory is in [doc/design3.md](doc/design3.md), and what is being built
+now is in [doc/goals.md](doc/goals.md).
+
+The model and the views share one pure core, in `.cljc`, which runs on
+the JVM and in the browser. The browser app renders with
+[Replicant](https://github.com/cjohansen/replicant) and is built with
 [shadow-cljs](https://github.com/thheller/shadow-cljs).
 
 
 
 ## Layout
 
-    doc/                    goals, to do, UX, architecture, research
-    src/sonouchi/core/      the pure core, in .cljc: views, actions
-    src/sonouchi/app.cljs   the shell: the one atom, rendering
+    doc/                    design3, goals, to do, UX, architecture, research
+    src/sonouchi/core/      the pure core, in .cljc: the scheduler, views, actions
+    src/sonouchi/app.cljs   the browser shell: the one atom, rendering
+    src/sonouchi/main.clj   the command line: prints a schedule on the JVM
+    examples/               EDN inputs for the command line
     test/                   tests, in .cljc, run on the JVM and Node
     public/index.html       the page; builds write public/js/
     public/*.ico, *.png     the icons, made from tanuki.png
@@ -44,6 +52,12 @@ Open http://localhost:8080. shadow-cljs compiles on every save and
 reloads the page's code without losing its state. Warnings are errors,
 so a warning stops the reload and is shown in the terminal and on the
 page. Stop it with Ctrl-C.
+
+### Run the scheduler
+
+Try the scheduler on design3's running example, on the JVM:
+
+    clojure -M -m sonouchi.main examples/running-example.edn
 
 ### Work in a REPL
 
@@ -136,6 +150,8 @@ icon needs an opaque background; `#F6DFBF` is the tanuki's belly.
 - `npx shadow-cljs watch app`: the app at http://localhost:8080, with
   hot reload and the browser REPL on port 7888.
 - `npx shadow-cljs release app`: an optimised build in `public/js/`.
+- `clojure -M -m sonouchi.main examples/running-example.edn`: print the
+  schedule of an EDN file of tasks.
 - `bin/check`: every check. Run it before each commit.
 - `bin/fmt`: reformat the sources.
 - `clj -M:dev`: a JVM REPL with the tests on the classpath.
