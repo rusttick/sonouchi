@@ -115,7 +115,10 @@ names. Saved queries are named in the owner's words, show their
 counts, and are one key away. Why: people browse far more than they
 search (Bergman 2008, Whittaker 2011, visual 4.1), facets and dynamic
 queries (Yee 2003, Ahlberg 1992, visual 4.2), suggestions (Hearst 2009,
-visual 4.3), information scent (Pirolli 1999, visual 4.4).
+visual 4.3), information scent (Pirolli 1999, visual 4.4). Version 0
+has the typed words only; facets, suggestions and saved queries are
+parked until the record is large enough to need them (goals,
+"Parked").
 
 **V16. Light theme and a Gothic face** by default, and short task
 titles. A dark theme can be optional. Why: Piepenbrock 2013 (visual
@@ -156,32 +159,53 @@ A task that appears in two groups looks identical in both. Why: Okoe
   Which tasks were touched yesterday is easy to recall, and how long
   each took is not; a timer or an hours log would very likely go
   unused, which is how outcome records go missing (Jørgensen 2004, Roy
-  2005, workflow 10). Each task then has elapsed working days from
-  start to finish, the number of days it was worked on, and its
-  estimate.
+  2005, workflow 10). Diaries of the day before are accurate for what
+  was done, and worst for short touches; their quality falls once the
+  gap passes a day (Gershuny 2017, workflow 10). So the day is
+  recorded the next morning, catching up further back is allowed but
+  shown as such, and a touch too short to remember is lost, which is
+  accepted. Each task then has elapsed working days from start to
+  finish, the number of days it was worked on, and its estimate.
 - **Waiting is not a state.** A task that waits on something outside
   the owner's control has either started or not, and design 3 counts
   elapsed time from the start either way. So a wait is recorded beside
-  the state: when it began and ended, the reason, and on whom. Design 3
-  uses these reasons to measure how much delay came from outside the
-  plan (Step 0, "Data recorded"; Step 6's H6). A wait on a person is
+  the state: when it began and ended, the reason, and on whom. The
+  reasons are design 3's three: a person, an outside party, and not in
+  the plan, which is the owner saying that something else came first.
+  Design 3 uses these reasons to measure how much delay came from
+  outside the plan (Step 0, "Data recorded"; Step 6's H6). The board
+  still has a Waiting column, because the whiteboard has one and the
+  board is laid out like it (visual momentum, Woods 1984, visual 2.2);
+  the column is a view of the open waits, and each card in it says
+  whether its task has started. A wait on a person is
   usually a request the owner made to them: later, waits and the
   requests made to the owner become one kind of thing, recorded as
   facts without forcing every exchange through a protocol (Winograd
   1987, Suchman 1993, Winograd 1994, workflow 9).
 - **Estimates are made fresh, and alone.** An estimate field starts
-  empty (V14). No other estimate of the task, including the one of a
-  task it replaces, is shown before or after: shown after, it invites a
-  revision towards it, which is the same anchoring one step later. The
-  comparison that teaches is design 3's scoring of estimates against
-  outcomes. The unit is always working days, recorded with each
-  estimate, because the unit changes the estimate (Jørgensen 2015,
-  workflow 10).
+  empty (V14). The estimate of a task being replaced is never shown in
+  the replacement display, before or after: shown after, it invites a
+  revision towards it, which is the same anchoring one step later. A
+  task's own earlier estimate anchors a re-estimate too, even when
+  the estimator is told to ignore it (Jørgensen 2001, Løhre 2016,
+  workflow 10), and hiding it at the moment of typing does not undo
+  having seen it. So the board does not show the number: a card says
+  only whether the task has an estimate, which is what the board
+  needs (V3, V8). The schedule shows the number, because dates are
+  what it is for, and a re-estimate made there is anchored; it is
+  recorded as a revision, and design 3 scores first estimates and
+  revisions apart. The comparison that teaches is design 3's scoring
+  of estimates against outcomes. The unit is always working days,
+  recorded with each estimate, because the unit changes the estimate
+  (Jørgensen 2015, workflow 10).
 - **Order is set by hand, mainly by key.** Moves are up, down, to the
   top, or below a named task, with no drag needed. Only the top of a
   list needs an exact order. A manual order is a ranking, not a
   priority rating, and the two are not interchangeable. Why: workflow
-  11.
+  11. This is for the ranked backlog, which is parked (goals,
+  "Parked"). The board's order is the whiteboard's: a card's place in
+  its column follows the owner's acts, and nothing else moves it
+  (V6).
 - **No trees.** One task can serve several requests, a merge has
   several predecessors, and dependencies form a graph. A tree view
   would either drop links or show one task in several places, and
@@ -213,14 +237,19 @@ Each part of the interface goes through these steps before it is built.
    nothing left to memory (V8).
 6. **The prediction:** the time for a typical use, by the
    keystroke-level model (visual 3.3).
-7. **The sketch,** checked against every rule above.
+7. **The sketch,** checked against every rule above. A sketch is text
+   on the running example, in the design document. When a sketch
+   would cost about as much as the change in the app, the change is
+   made in the app and judged there instead.
 8. **The build.**
-9. **The trial,** on real work, once enough is built to be worth
-   using. It measures time per use against the prediction, and the
-   number of undos as a count of errors. What it shows is written into
-   the design, which is then edited to say what works.
+9. **The trial:** the owner uses the app for a session or a few, and
+   what went wrong is discussed, to tell what the owner has to learn
+   from what the app has to change. The footer's act timing and the
+   undos in the log are the measurements. What the discussion settles
+   is written into the design, which is then edited to say what
+   works.
 
 A trial uses one version at a time. One user who is also the designer
 is biased towards their own design and gets faster with practice
-whatever the design, so comparing two designs fairly means alternating
-them over several weeks.
+whatever the design, so a trial can show that a design is too slow or
+asks too much, never that it is the best one.

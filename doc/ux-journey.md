@@ -85,7 +85,12 @@ The same on every screen (V9):
   waiting refer to. It is the last working day before today, because
   the stand-up reports yesterday. `[` and `]` move it a day back or
   forward, so that a gap of several days can be caught up (Epstein
-  2015).
+  2015). A recording day more than one working day back is shown in
+  full ink, because recall falls off after a day (Gershuny 2017,
+  workflow 10); the record is still taken. Moving the recording day
+  is also how a wrong start, finish or wait is corrected: the same
+  key on the right day appends a new fact, and the old one stays in
+  the log (design3, rule 3).
 - **The actions,** in a flat list that is always in the same order,
   each with its key: `1` the stand-up board, `2` the schedule. The
   replacement display is opened from the board, not from this list.
@@ -108,9 +113,12 @@ positions is stored (ux-design, "The concept"):
 | Waiting     | it has a wait that has not ended          |
 | Done        | it has finished                           |
 
-A card shows the task's title, and under it, small, its latest
-estimate with the unit, or "no estimate". A card in Waiting also says
-whether the task has started, and on whom it waits. Within a column,
+A card shows the task's title, and under it, small, "no estimate"
+when it has none. It does not show the estimate itself, because a
+task's own earlier estimate anchors a re-estimate (ux-design,
+"Estimates are made fresh"); the schedule shows the numbers. A card
+in Waiting also says whether the task has started, and on whom it
+waits. Within a column,
 the card that arrived last is at the top: the order follows the times
 of the owner's acts, so nothing moves unless the owner moved it (V6).
 Done keeps every finished task, newest first; the query finds old
@@ -128,18 +136,20 @@ click. The keys are shown beside the cursor (V11):
 | `s` | started on the recording day | moves to In progress |
 | `f` | finished on the recording day | moves to Done |
 | `w` | worked on, on the recording day | gets its ✓ |
-| `b` | waiting begins: a small field on the card asks on whom and why, Enter records | moves to Waiting |
+| `b` | waiting begins: a small field on the card asks the reason and on whom, Enter records | moves to Waiting |
 | `b` on a waiting card | waiting ends | moves back to To do or In progress |
 | `e` | correct the wording: the title becomes editable in place, Enter records, Escape leaves it as it was | keeps its place |
-| `t` | estimate: see "Estimating", below | shows the new estimate |
+| `t` | estimate: see "Estimating", below | loses "no estimate" |
 | `a` | the task comes after exactly the marked tasks; with none marked, after none. See "Comes after", below | keeps its place |
 | `x` | mark, or unmark | shows a mark |
 | `r` | replace the marked cards, or the card under the cursor | opens the replacement display |
 | ⌘Z, ⇧⌘Z | undo, redo (Ctrl+Z and Ctrl+Y on Windows and Linux) | as before the act |
 
 Every act changes the card in place, marks it (V7, V12), and can be
-undone (V13). The reasons for a wait are design 3's categories: a
-person, an outside party.
+undone (V13). The reasons for a wait are design 3's three: a person,
+an outside party, and not in the plan, meaning something else came
+first. The field offers them as three keys, and "on whom" is typed
+only for the first two.
 
 **The prediction.** M + K, about 1.55 s a task, so about 16 s for ten
 tasks; by mouse it would be M + P + K, about 27 s (visual 3.3).
@@ -170,9 +180,13 @@ there are no new lines, it is dropping.
 - ⌥↑ and ⌥↓ (Alt elsewhere) change the current line's state: To do,
   In progress, Done. A line starts with the old task's state when one
   task is replaced, and with To do otherwise. Every new task's state is
-  shown, and is part of what is recorded. A new task in progress
-  started on the recording day; a new task done started and finished
-  on it. Waiting is set afterwards, on the board.
+  shown, and is part of what is recorded. A new task in progress or
+  done started on the old task's start day when exactly one old task
+  had started, so that the elapsed time design3 measures is not lost
+  when a running task is split or reframed; otherwise it started on
+  the recording day. A new task done finished on the recording day.
+  The line says which start it will get. Waiting is set afterwards,
+  on the board.
 - ⌘Enter records the whole replacement as one act, with each new
   task's estimate, and returns to the board with the new cards marked
   (V7). The old cards leave the board.
@@ -206,18 +220,20 @@ it:
     measure runout at 3 speeds
     [    ] working days, as likely more as less        Enter record · Esc cancel
 
-- The field starts empty, with no example number (V14). While it is
-  open, the card's own latest estimate is hidden, so the new one is
-  made fresh (ux-design, "Estimates are made fresh").
+- The field starts empty, with no example number (V14). On the board
+  the task's estimate is never shown; on the schedule it is hidden
+  while the field is open, though the anchor remains (ux-design,
+  "Estimates are made fresh").
 - The words beside the field are design3's question in short: the
   number is equally likely to be too high or too low. The unit is
   always working days (goals, "What it records").
 - Enter records the estimate; Escape leaves the card as it was. A
   number that is not positive is not recorded, and the field says
   why.
-- A task can be estimated again. Each estimate is kept, and the card
-  shows the latest. An estimate made after the task started is kept,
-  but design3 does not count it.
+- A task can be estimated again. Each estimate is kept, and the
+  schedule uses the latest. An estimate made after the task started is
+  kept, but design3 does not count it; one made before the start is a
+  revision, scored apart from the first.
 
 ### Comes after
 
@@ -252,19 +268,48 @@ A task with no estimate has no dates, and neither has any task that
 comes after it. These tasks are listed apart, in full ink, as "not
 estimated", because they are what the owner can fix now (V3, V8).
 
-**The display** is not chosen yet. It is chosen by sketching design3's
-running example of five tasks in two or three ways, and comparing
-them against V1 to V5 and V17 (goals, "How it is made"):
+**The display** is a table of dates with the critical path marked,
+and the chain behind the task under the cursor drawn beside it. The
+first question asks for exact values, and cognitive fit sends exact
+values to a table (Vessey 1991, visual 2.4). The second is a question
+about a path, which V17 sends to a small node-link drawing. A Gantt
+chart has no evidence for it and some against (workflow 6), and
+PlanningLines (Aigner 2005) show slack, which the owner has not asked
+about; both wait for a trial to ask for them. The research is thin
+here (workflow, "Where the research is thin"), so this is the choice
+the rules give, not a proven one.
 
-- a Gantt chart, one row per task, with the critical path marked
-- a layered drawing of the tasks, from left to right in the order
-  they can be done, with each task's dates on it (Sugiyama 1981)
-- PlanningLines, which show earliest and latest dates (Aigner 2005).
-  These need slack, which needs the backward pass
+On design3's running example, with today Monday 26 October 2026:
 
-How the query shows on the schedule is decided with the sketch: the
-schedule is always computed from every task, and the query only
-decides what is shown.
+    SCHEDULE                              finishes Wed 11 Nov · critical: A B D E
+    ▌ A  design            3 wd   Mon 26 Oct – Wed 28 Oct
+    ▌ B  build back end    5 wd   Thu 29 Oct – Wed  4 Nov   after A
+      C  build front end   4 wd   Thu 29 Oct – Tue  3 Nov   after A
+    ▌ D  integrate         2 wd   Thu  5 Nov – Fri  6 Nov   after B, C
+    ▌ E  test              3 wd   Mon  9 Nov – Wed 11 Nov   after D
+
+    D comes after:   A ─▶ B ─▶ D
+                     A ─▶ C ─┘
+
+- One row per task, in the order of the dependency graph, with ties
+  in the board's order. Rows move only when the owner changes what
+  comes after what (V6); a sort by date is not offered in version 0.
+- The critical path is marked by one feature, a bar in the margin
+  (V3), and named in the header, so that the mark is not the only
+  carrier (V4).
+- Each row shows the task, its latest estimate in working days, its
+  start and finish as weekday and date, and the tasks it comes after.
+  A task that has started shows its actual start; one that has
+  finished is not on the schedule.
+- The chain under the table is the tasks the cursor's task comes
+  after, back to the first, as a small layered drawing with as few
+  crossings as possible (Sugiyama 1981, visual 5.2). It is the answer
+  to "what is this waiting on?".
+- Tasks with no dates are listed under the table, in full ink, as
+  "not estimated", with the task that stops each.
+- The query hides rows that do not match; the schedule is always
+  computed from every task, and the critical path is marked on what
+  is shown.
 
 **The acts** are the board's, on a cursor over the tasks: `t`, `a`,
 `x`, `s`, `f` and undo. The schedule changes with each act, in place

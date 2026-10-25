@@ -46,12 +46,152 @@
   painted frame, in milliseconds (V12)."
     :schema number?}
 
+   ;; The screen's own state, in the state map and not in the log
+
+   :state/screen
+   {:doc "Which screen is shown: :stand-up, :replace or :schedule."
+    :schema [:enum :stand-up :replace :schedule]}
+
+   :state/query
+   {:doc "The text in the query bar."
+    :schema string?}
+
+   :state/recording-day
+   {:doc "The day the stand-up keys record, as an ISO day. The last
+  working day before today unless the owner moved it."
+    :schema string?}
+
+   :state/cursor
+   {:doc "The id of the task under the cursor."
+    :schema uuid?}
+
+   :state/marked
+   {:doc "The ids of the marked tasks, for replacement or for comes
+  after."
+    :schema [:set uuid?]}
+
+   :state/draft
+   {:doc "The replacement being typed: the old tasks' ids under
+  :draft/old, and the new lines under :draft/lines."
+    :schema map?}
+
+   :draft/old
+   {:doc "The ids of the tasks being replaced. Empty when adding."
+    :schema [:set uuid?]}
+
+   :draft/lines
+   {:doc "The new tasks being typed, in order, each with :draft/title,
+  :draft/state and :draft/estimate-text."
+    :schema [:vector map?]}
+
+   :draft/title
+   {:doc "A new task's title as typed so far."
+    :schema string?}
+
+   :draft/state
+   {:doc "A new task's state: :to-do, :in-progress or :done."
+    :schema [:enum :to-do :in-progress :done]}
+
+   :draft/estimate-text
+   {:doc "A new task's estimate as typed so far. Empty for none."
+    :schema string?}
+
+   :state/field
+   {:doc "The one small field open on a card: which kind under
+  :field/kind, the task under :field/task, and the text under
+  :field/text."
+    :schema map?}
+
+   :field/kind
+   {:doc "What the open field is for: :title, :wait or :estimate."
+    :schema [:enum :title :wait :estimate]}
+
+   :field/task
+   {:doc "The id of the task the open field is on."
+    :schema uuid?}
+
+   :field/text
+   {:doc "The text typed into the open field so far."
+    :schema string?}
+
+   :state/index
+   {:doc "The search index of task titles, as sonouchi.core.search
+  builds it."
+    :schema map?}
+
    ;; Tasks
 
    :task/title
    {:doc "What is on the post-it: a few words describing the task. Never
   blank."
     :schema [:and string? [:fn #(re-find #"\S" %)]]}
+
+   ;; Tasks, as the board records them. Days are ISO strings, such as
+   ;; "2026-10-26".
+
+   :task/started
+   {:doc "The day the task started, as an ISO day."
+    :schema string?}
+
+   :task/finished
+   {:doc "The day the task finished, as an ISO day."
+    :schema string?}
+
+   :task/worked-on
+   {:doc "The days the owner worked on the task, as ISO days. Recording
+  a start or a finish on a day also puts the day here."
+    :schema [:set string?]}
+
+   :task/replaced-by
+   {:doc "The tasks that replaced this one. An empty set means it was
+  dropped. A task with this attribute has left the board."
+    :schema [:set uuid?]}
+
+   :task/kind
+   {:doc "An optional kind label from a small fixed list, as design3's
+  Step 0 records and its Step 2 needs. No screen in version 0 sets it."
+    :schema keyword?}
+
+   ;; Estimates: an entity per estimate, so that every one is kept
+
+   :estimate/task
+   {:doc "The task this estimate is of."
+    :schema uuid?}
+
+   :estimate/amount
+   {:doc "The number the owner typed: the working days they think are
+  equally likely to be too many or too few. Positive."
+    :schema [:and number? [:> 0]]}
+
+   :estimate/unit
+   {:doc "The unit of :estimate/amount. Always :working-days; stored
+  because the unit changes the estimate (Jørgensen 2015)."
+    :schema [:enum :working-days]}
+
+   ;; Waits: an entity per wait, so that each keeps its own days
+
+   :wait/task
+   {:doc "The task that waits."
+    :schema uuid?}
+
+   :wait/reason
+   {:doc "Why the task waits, in design3's three categories for a late
+  start: :person, :outside-party, or :not-in-plan, meaning something
+  else came first."
+    :schema [:enum :person :outside-party :not-in-plan]}
+
+   :wait/on
+   {:doc "On whom the task waits, in the owner's words. Absent when the
+  reason is :not-in-plan."
+    :schema string?}
+
+   :wait/began
+   {:doc "The day the wait began, as an ISO day."
+    :schema string?}
+
+   :wait/ended
+   {:doc "The day the wait ended, as an ISO day. Absent while it lasts."
+    :schema string?}
 
    ;; Tasks, as the scheduler reads them. Days are working days counted
    ;; from day 0 of the project.
@@ -104,6 +244,16 @@
    {:doc "Ids named in some :task/after that are not tasks."
     :schema [:set any?]}
 
+   :schedule/critical
+   {:doc "The ids of the tasks on the critical path: the chain that sets
+  the last finish."
+    :schema [:set any?]}
+
+   :schedule/slack-days
+   {:doc "How many working days a task can move without moving the last
+  finish. 0 on the critical path."
+    :schema number?}
+
    ;; Actions: what made an act (:act/action)
 
    :action/add-task
@@ -118,6 +268,54 @@
    :action/redo
    {:doc "Undoes the undo named in :act/undoes, which puts back what it
   removed."
+    :schema keyword?}
+
+   ;; Actions of the stand-up board and the replacement display
+
+   :action/record-start
+   {:doc "The task started on the recording day: sets :task/started and
+  adds the day to :task/worked-on."
+    :schema keyword?}
+
+   :action/record-finish
+   {:doc "The task finished on the recording day: sets :task/finished
+  and adds the day to :task/worked-on."
+    :schema keyword?}
+
+   :action/record-worked-on
+   {:doc "The owner worked on the task on the recording day: adds the
+  day to :task/worked-on."
+    :schema keyword?}
+
+   :action/begin-wait
+   {:doc "A wait begins: a new wait entity for the task, with its reason,
+  on whom, and the recording day as :wait/began."
+    :schema keyword?}
+
+   :action/end-wait
+   {:doc "A wait ends: sets the wait's :wait/ended to the recording day."
+    :schema keyword?}
+
+   :action/replace
+   {:doc "Replaces N tasks by M new ones in one act: each new task with
+  its title, state and estimate; each old task's :task/replaced-by; and
+  the :task/after of every task that came after an old task, with the
+  old task swapped for its replacements."
+    :schema keyword?}
+
+   :action/correct-title
+   {:doc "Corrects a task's wording: sets a new :task/title. The task,
+  its history and its estimate are kept."
+    :schema keyword?}
+
+   :action/estimate
+   {:doc "Estimates a task: a new estimate entity. The estimate counts
+  for design3 only if made before the task started."
+    :schema keyword?}
+
+   :action/set-after
+   {:doc "Sets a task's whole :task/after set, or retracts it when the
+  set is empty. Not recorded if it would make a cycle."
     :schema keyword?}
 
    ;; Acts: one per thing the owner does that changes the record

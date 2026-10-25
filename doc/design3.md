@@ -501,6 +501,24 @@ the dependencies, and an optional kind label (for example design, build or test)
 When a task starts later than its predecessors allow, the reason is recorded as a short category, such as "waiting for a person",
 "waiting for an outside party" or "not in the plan". Step 6 uses these reasons.
 
+**Added by sonouchi's version 0** ([goals.md](goals.md), [architecture.md](architecture.md)), as facts this step
+records for later steps to use:
+
+- A start, finish or wait is recorded as the calendar day on which it happened, and separately the time at which it
+  was recorded. Working days and elapsed days are both computed from the calendar days, so the calendar question of
+  step 6 can be tested.
+- Waits in the middle of a task are recorded like a late start, with the same three reasons; they are part of the
+  task's elapsed duration.
+- The days on which a task was worked on, recorded the morning after. Effort is counted in days worked, never in
+  hours, because an hours log would go unrecorded (Jørgensen 2004).
+- **Replacement.** Work is often replaced by work of a different shape: N tasks by M new ones, in one act, each new
+  task estimated afresh with the old estimates hidden. The old tasks keep their estimates and never get an outcome.
+  Step 1 must choose how to treat them: censored at the replacement, left out, or compared with the total of the
+  replacements. The comparison is biased in a known direction, because the estimates of a task's parts add up to
+  more than the estimate of the whole (Forsyth 2008), so step 1 tries leaving them out first and records the ratio
+  of the replacements' estimates to the old estimate as a quantity of its own. When exactly one of the replaced
+  tasks had started, its one or more replacements inherit its start, so the elapsed time is kept.
+
 **Experiment for step 1.** Once about 50–100 tasks are complete, compute `r_i = ln(actual_i / estimate_i)`.
 
 - Hypothesis H1: the values `r_i` are roughly normal, with a mean above 0 (systematic underestimation) and a standard deviation between 0.3 and 0.7.
@@ -998,6 +1016,10 @@ Each entry ends with a status word:
 - Flyvbjerg 2006. Flyvbjerg, B. "From Nobel Prize to project
   management: getting risks right." Project Management Journal 37(3),
   5–15. checked
+- Forsyth 2008. Forsyth, D., Burt, C. "Allocating time to future
+  tasks: the effect of task segmentation on planning fallacy bias."
+  Memory & Cognition 36(4), 791–798. Findings from the abstract.
+  checked
 - Gelman 2013. Gelman, A., Carlin, J., Stern, H., Dunson, D.,
   Vehtari, A., Rubin, D. Bayesian Data Analysis, third edition. CRC
   Press. Normal models, hierarchical models and partial pooling.

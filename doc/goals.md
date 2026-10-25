@@ -58,12 +58,11 @@ needs.
 2. **See the schedule:** each task's dates and the critical path,
    computed by the critical path method from the estimates. In
    design3's running example, A 0–3, B 3–8, C 3–7, D 8–10, E 10–13,
-   with A, B, D, E critical. How to show this is the main open design
-   question. It is settled by drawing two or three candidates on the
-   running example, such as a Gantt chart with the critical path
-   marked, a layered dependency drawing with dates, and PlanningLines
-   (Aigner 2005), and choosing among them by the display rules and the
-   research in [ux-design.md](ux-design.md).
+   with A, B, D, E critical. It is shown as a table of dates with the
+   critical path marked, and the chain of tasks behind the selected
+   one drawn beside it, by cognitive fit and V17
+   ([ux-journey.md](ux-journey.md), "The schedule"). A Gantt chart
+   and PlanningLines (Aigner 2005) wait until a trial asks for them.
 3. **Record what happened, one act at a time:** a start, a finish, the
    days worked, and waits with their reason. The stand-up board in
    [ux-journey.md](ux-journey.md) is how this is done. Once a task has
@@ -107,9 +106,11 @@ For each task, the record holds:
 - when it started and finished, as days
 - which days the owner worked on it, recorded at the stand-up. Effort
   is counted in days worked, never in hours
-- when it waited on something outside the owner's control, on whom,
-  and why (design3's reasons, used in its Step 6)
+- when it waited, on whom, and why: a person, an outside party, or
+  not in the plan (design3's three reasons, used in its Step 6)
 - when it was replaced, and by which tasks
+- room for a kind label, which design3's Step 2 needs. No screen sets
+  it in version 0
 
 There is no seed data; the owner enters every task by hand.
 
@@ -118,7 +119,9 @@ There is no seed data; the owner enters every task by hand.
 - **A replaced task's estimate.** It never gets an outcome. Is it
   censored, left out, or compared with the total of its replacements?
   The record keeps what all three need, and Step 1 chooses by
-  out-of-time score (design3, 3.1).
+  out-of-time score (design3, 3.1), trying "left out" first, since
+  estimates of parts are known to add up to more than the estimate of
+  the whole (Forsyth 2008, workflow 3).
 
 The rest are in [architecture.md](architecture.md), "Open questions
 about the model".
@@ -134,13 +137,12 @@ about the model".
 - **In the browser alone, first.** The record is held in the browser,
   with no server, until the interface shows what a server must
   provide.
-- **Sketch first, then research.** Each display is chosen by drawing
-  candidates on the running example and comparing them. Research is
-  looked up to answer a specific question about a sketch. The rules in
-  [ux-design.md](ux-design.md) are a checklist for a sketch, not
-  steps to finish before one.
 - **Tried by the owner on their own work,** as soon as version 0 can
-  be used. What the trials show is written back into the design.
+  be used: a session or a few, then a discussion of what went wrong
+  and whether the owner or the app has to change. What the trials
+  show is written back into the design. The record proper begins when
+  the app is useful enough to replace the whiteboard and the GitHub
+  boards.
 - **One set of rules.** Clojure and ClojureScript, values and pure
   functions, thin shells around one pure core, and facts appended
   rather than overwritten ([CONTRIBUTING.md](../CONTRIBUTING.md)).

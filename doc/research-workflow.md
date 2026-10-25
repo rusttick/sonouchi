@@ -108,6 +108,16 @@ quick analysis by a designer. Two of its dimensions:
   can also make people closed-minded about better routes.
 - **Kruger 2004** (in `doc/design3.md`): listing a task's
   parts makes its estimate longer and more realistic.
+- **Forsyth 2008** (checked). In three experiments, the time estimated
+  for a task as a whole was lower than the sum of the estimates for
+  its parts. The authors call this the *segmentation effect*, and
+  showed in the third experiment that rounding does not explain it.
+  So the total of the parts' estimates is expected to exceed the
+  whole's estimate, whichever is nearer the truth.
+- **Jørgensen 2004b** (checked). Seven estimation teams each estimated
+  one project top-down and another bottom-up. Top-down estimates were
+  accurate mainly when the estimators recalled very similar past
+  projects. The authors advise bottom-up otherwise.
 
 ## 4. One record, several views
 
@@ -165,9 +175,18 @@ The evidence is thin, and it is mostly not in favour of Gantt charts.
   controlled experiment, users made fewer errors and worked faster on
   questions about temporal uncertainty than with a PERT chart. The PERT
   chart was still better for reading a single attribute.
+- **Luz 2009** (checked). The earlier paper on the same mosaics
+  reports that, as a static display, they beat Gantt charts on
+  temporal inference tasks. Participant numbers not seen.
 - **Bellotti 2004** (read). The Gantt view was the least liked part of
   TaskVista. It "seems somewhat unnatural for those not used to looking
   at Gantt charts".
+- **A fifth search, 2026-10-25,** for a controlled comparison of Gantt
+  charts, network diagrams and tables for reading one schedule found
+  nothing. The nearest, "Visual versus Tabular Scheduling Programs"
+  (authors not recorded), measured *making* a schedule, and its
+  tabular condition included a Gantt chart, so it does not separate
+  the forms.
 - **Geraldi 2012** (checked) is a conceptual critique, not an
   experiment. The Gantt chart comes from scientific management and
   handles a project's complicatedness well. But it does not express
@@ -272,6 +291,27 @@ projects, where recording cost more effort than it saved. Recalled
 durations are unreliable (Roy 2005, in `doc/design3.md`, and Bellotti
 2004 above).
 
+**One's own earlier estimate is an anchor.** Jørgensen 2001 (checked)
+found, in two experiments, that an early estimate made with little
+information strongly biased the re-estimate, although the estimators
+were told not to use it. Jørgensen's 2004 review (checked) concludes
+that the first estimate and the re-estimate should be made
+independently. Løhre 2016 (checked) found that telling people to
+forget an anchor did not reduce its effect, and if anything increased
+it. So hiding a number at the moment of estimating does not undo
+having seen it earlier.
+
+**Which activities were done yesterday can be recalled; how long each
+took cannot.** Time-use research uses diaries of the day, filled in
+during or just after it. Gershuny 2017 (read in part) compared 131
+such diaries with a wearable camera's record of the same day: the
+diaries gave accurate, unbiased totals over the sample, with random
+error per person, and short activities were reported worst. A 2022
+study of online time-use diaries (checked, authors not recorded)
+found that data quality fell significantly once the recall period
+went beyond 24 hours. I found no study of recall at the level of
+"which tasks did I touch", only of activities and durations.
+
 ## 11. Manual ordering and dragging
 
 **People do order their tasks by hand, and do it well.**
@@ -302,7 +342,14 @@ a list.
 ## Where the research is thin
 
 - No controlled study found of Gantt charts against network diagrams
-  for schedule comprehension.
+  or tables for schedule comprehension, in five searches, the last on
+  2026-10-25.
+- No study found of recalling, a day later, which of one's tasks were
+  worked on, as against how long activities took. Searched 2026-10-25.
+- No study found of how the total duration of a task's replacements
+  compares with the estimate of the task they replaced. The
+  segmentation effect (Forsyth 2008) is about estimates, not
+  outcomes. Searched 2026-10-25.
 - No experimental evidence found on Kanban boards' effect on
   understanding or memory.
 - No user study found of outliners (nested, collapsible lists) for
@@ -315,7 +362,8 @@ a list.
 
 Status words: `read` means the cited figures were read in the paper;
 `checked` means the bibliographic details and findings were confirmed
-from abstracts or publisher pages by web search on 2026-10-18;
+from abstracts or publisher pages by web search on 2026-10-18, or on
+2026-10-25 where the entry says so;
 `unchecked` means cited from prior knowledge.
 
 - Ahmad 2018. Ahmad, M. O., Dennehy, D., Conboy, K., Oivo, M.
@@ -353,6 +401,16 @@ from abstracts or publisher pages by web search on 2026-10-18;
 - Fernandes 2018. Fernandes, M., Walls, L., Munson, S., Hullman, J.,
   Kay, M. "Uncertainty displays using quantile dotplots or CDFs
   improve transit decision-making." Proceedings of CHI 2018. checked
+- Forsyth 2008. Forsyth, D., Burt, C. "Allocating time to future
+  tasks: the effect of task segmentation on planning fallacy bias."
+  Memory & Cognition 36(4), 791–798. Findings from the abstract,
+  confirmed 2026-10-25. checked
+- Gershuny 2017. Gershuny, J., Harms, T., Doherty, A., Thomas, E.,
+  Milton, K., Kelly, P., Foster, C. "CAPTURE24: testing self-report
+  time-use diaries against objective instruments in real time."
+  Centre for Time Use Research working paper 10, University of
+  Oxford, October 2017. Abstract and design read; the figure on short
+  activities is from a secondary summary. read in part
 - Geraldi 2012. Geraldi, J., Lechter, T. "Gantt charts revisited: a
   critical analysis of its roots and implications to the management
   of projects today." International Journal of Managing Projects in
@@ -377,7 +435,16 @@ from abstracts or publisher pages by web search on 2026-10-18;
   "Don't take my folders away! Organizing personal information to get
   things done." CHI 2005 extended abstracts. The finding was checked;
   the author list is unchecked
+- Jørgensen 2001. Jørgensen, M., Sjøberg, D. "Impact of effort
+  estimates on software project work." Information and Software
+  Technology 43(15), 939–948. The re-estimation finding is as
+  described in Jørgensen's 2004 review of expert estimation, Journal
+  of Systems and Software 70, 37–60; the abstract confirms the
+  anchoring result. checked
 - Jørgensen 2004. See `doc/design3.md`.
+- Jørgensen 2004b. Jørgensen, M. "Top-down and bottom-up expert
+  estimation of software development effort." Information and
+  Software Technology 46(1). Findings from the abstract. checked
 - Jørgensen 2015. Jørgensen, M. "The effect of the time unit on
   software development effort estimates." SKIMA 2015. Figures read in
   an anonymised conference draft. read
@@ -398,6 +465,15 @@ from abstracts or publisher pages by web search on 2026-10-18;
 - Li 2010. Li, I., Dey, A., Forlizzi, J. "A stage-based model of
   personal informatics systems." Proceedings of CHI 2010. The five
   stages were checked from secondary sources
+- Løhre 2016. Løhre, E., Jørgensen, M. "Numerical anchors and their
+  strong effects on software development effort estimates." Journal
+  of Systems and Software 116, 49–56. Findings from the abstract.
+  checked
+- Luz 2009. Luz, S., Masoodian, M., Rogers, B., Zhang, C. "Chronos: a
+  tool for interactive scheduling and visualisation of task
+  hierarchies." Proceedings of IV 2009, IEEE. Finding from the
+  abstract; the author list beyond the first two is unchecked.
+  checked
 - Luz 2011. Luz, S., Masoodian, M. "Comparing static Gantt and mosaic
   charts for visualization of task schedules." 15th International
   Conference on Information Visualisation, IEEE, 182–187.

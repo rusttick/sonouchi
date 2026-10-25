@@ -77,6 +77,7 @@ Built:
 | `sonouchi.core.tasks` | adding tasks, and the tasks added today | [architecture-interface.md](architecture-interface.md) |
 | `sonouchi.core.view` | the page, as hiccup | [architecture-interface.md](architecture-interface.md) |
 | `sonouchi.core.schedule` | design3's Step 0: the forward pass of the critical path method, with actual days replacing computed ones, and cycles and unknown tasks described as data. The backward pass and the critical path are not written yet | this page |
+| `sonouchi.core.days` | days as ISO strings: today from the shell's clock, the next and previous day, working days, adding and counting them, and a day's label such as "Mon 26 Oct". No host calendar: the civil-date arithmetic is written out, so both platforms agree | this page, "The data for version 0" |
 
 The page built today is a quick-entry field with the tasks added today
 under it. The screens in [ux-journey.md](ux-journey.md) replace it.
@@ -85,10 +86,10 @@ Planned for version 0:
 
 | Namespace | What it does |
 |---|---|
-| `sonouchi.core.days` | days as ISO strings: the next and previous day, working days, and counting working days between two days |
 | `sonouchi.core.board` | each task's column, the order in a column, and whether a task has a record for the recording day |
 | `sonouchi.core.estimates` | each task's latest estimate, and whether design3 counts it |
-| `sonouchi.core.schedule`, more | the backward pass, slack and the critical path; and the tasks on the board turned into the scheduler's input |
+| `sonouchi.core.schedule`, more | the backward pass and the critical path; and the tasks on the board turned into the scheduler's input |
+| `sonouchi.core.chain` | the tasks behind one task, laid out in layers with few crossings, for the schedule's drawing (ux-journey, "The schedule") |
 
 ## The data for version 0
 
@@ -101,11 +102,19 @@ correctly on both platforms. The core does the calendar arithmetic
 itself, Monday to Friday being working days, until design 3 adds
 calendars (its step 6).
 
-This is to change. Time in the data is to be instants and durations in
-milliseconds, with working days only in what the owner is asked and
-shown ("Time in the data", in the open questions below). Until then, the scheduler counts working
-days from day 0, as its attributes `:task/estimate-days` and
-`:task/actual-start-day` say.
+This is settled, and replaces an earlier plan to hold time as instants
+and millisecond durations. A stand-up records that a task started
+"yesterday": the calendar day is the fact that was observed, and an
+instant would add precision that was not, which a record then
+presents as certainty (Jørgensen 2015, workflow 10). design3's Step 0
+defines the actual duration as working days between the recorded
+days, with the unit stored, and its Step 6 asks whether working time
+and elapsed time diverge; both are computed from calendar days. The
+time at which a fact was recorded is `:act/at`, an instant, so each
+act keeps both times design3 asks for. The scheduler's day numbers,
+`:task/estimate-days` and `:task/actual-start-day`, counted from
+day 0, are its input shape: `sonouchi.core.board` computes them from
+the facts and today, and they are never stored.
 
 **A task** is an entity with:
 
@@ -117,6 +126,7 @@ days from day 0, as its attributes `:task/estimate-days` and
 | `:task/finished` | the day it finished |
 | `:task/worked-on` | the set of days it was worked on |
 | `:task/replaced-by` | the set of tasks that replaced it. An empty set means it was dropped. A task with this attribute has left the board |
+| `:task/kind` | an optional kind label from a small fixed list, as design3's Step 0 records and its Step 2 needs. No screen in version 0 sets it; it is registered so that it can be added without a new attribute when the data asks for it |
 
 **An estimate** is an entity of its own, so that every estimate of a
 task is kept, each with the time it was made:
@@ -136,8 +146,8 @@ times and each wait keeps its own times:
 | Attribute | Value |
 |---|---|
 | `:wait/task` | the task that waits |
-| `:wait/reason` | `:person` or `:outside-party`, design 3's categories |
-| `:wait/on` | on whom, in the owner's words |
+| `:wait/reason` | `:person`, `:outside-party` or `:not-in-plan`, design 3's three categories for a late start (Step 0, "Data recorded"). `:not-in-plan` means something else came first; Step 6's H6 separates it from the other two |
+| `:wait/on` | on whom, in the owner's words. Absent when the reason is `:not-in-plan` |
 | `:wait/began` | the day it began |
 | `:wait/ended` | the day it ended; absent while it lasts |
 
@@ -150,7 +160,7 @@ times and each wait keeps its own times:
 | `:action/record-worked-on` | the day added to `:task/worked-on` |
 | `:action/begin-wait` | a new wait entity |
 | `:action/end-wait` | the wait's `:wait/ended` |
-| `:action/replace` | each new task, with its title and, by its chosen state, `:task/started` and `:task/finished`; a new estimate entity for each new task that was given one; each old task's `:task/replaced-by`; and the `:task/after` of each task that came after an old task, with the old task swapped for all of its replacements, or removed if it was dropped |
+| `:action/replace` | each new task, with its title and, by its chosen state, `:task/started` and `:task/finished`; a new estimate entity for each new task that was given one; each old task's `:task/replaced-by`; and the `:task/after` of each task that came after an old task, with the old task swapped for all of its replacements, or removed if it was dropped. A new task's `:task/started` is the one old task's start when exactly one old task had started, and the recording day otherwise (ux-journey, Stage 4) |
 | `:action/correct-title` | the task's new `:task/title` |
 | `:action/estimate` | a new estimate entity |
 | `:action/set-after` | the task's whole new `:task/after` set, or its retraction when the set is empty. Not recorded if it would make a cycle |
@@ -181,6 +191,8 @@ that logs from quick entry still load; new tasks come from
   and today. A task with no estimate has no dates, nor does any task
   after it. A task that is not finished finishes today at the
   earliest, even when it has run past its estimate
+- whether the recording day is more than one working day before
+  today, which the frame shows (ux-journey, "The frame")
 
 **The screen's own state,** in the state map and not in the log,
 because it describes the screen and not the work:
@@ -215,43 +227,49 @@ The interface is designed first, and these questions about the model's
 data are answered from what it turns out to need. The answers change
 Step 0 in [design3.md](design3.md).
 
-- **Replacement.** Step 0 has no facts for replacing tasks, and about
-  nine tasks in ten are replaced. A replaced task's estimate can be
-  censored at its replacement, left out, or compared with the total
-  of its replacements; the record keeps what all three need, and
-  Step 1 chooses by out-of-time score (design3, 3.1). Plain censoring
-  assumes that replacement says nothing about how long the task would
-  have taken, which is doubtful, because tasks are replaced when they
-  turn out different. Tasks that came after a replaced task come
-  after all of its replacements (ux-journey, Stage 4).
-- **Decided, for the scheduler to follow.** An unfinished task
-  finishes today at the earliest, even past its estimate. A task with
-  no estimate, and every task after it, has no dates.
-- **Days worked,** with the day and when it was recorded.
-- **Waits.** Step 0 records a reason only when a start is late. Waits
-  in the middle of a task are part of its elapsed duration, and are
-  recorded the same way.
+Settled, and written into design3's Step 0:
+
+- **Time in the data** is calendar days, as above.
 - **The estimate question** is design3's: working days, equally likely
   too high or too low, so the estimate is a median of elapsed working
   days. There is no second question for days of work: no study
   compares the two for interleaved work (workflow 10), each question
   asked costs effort, and effort is how outcome records go missing
   (Jørgensen 2004). Days worked are recorded anyway, so design3 can
-  study effort later.
-- **The unit** the owner is asked in is always working days, stored
-  with each estimate. How time is held in the data is a separate
-  question, below.
-- **Time in the data.** Instants and millisecond durations, in the
-  form Clojure uses on both platforms. Working days appear only in
-  what the owner is asked and shown. Design3 settles what a duration
-  measures, working time or elapsed time, since a 3-day task started
-  on a Friday is 5 days on the clock. The answer replaces the
-  scheduler's day attributes, and the ISO days of `sonouchi.core.days`
-  above, with new attributes; `sonouchi.core.days` then presents time
-  in working days, from `:state/now` and `:state/utc-offset-minutes`.
-- **Corrections.** How a start, finish or wait that was recorded
-  wrongly is corrected after other acts have followed it, when undo
-  would undo too much.
+  study effort later. The unit is always working days, stored with
+  each estimate.
+- **Days worked,** with the day and when it was recorded, the morning
+  after (ux-design, "Effort is days worked").
+- **Waits.** Step 0 records a reason only when a start is late. Waits
+  in the middle of a task are part of its elapsed duration, and are
+  recorded the same way, with the same three reasons.
+- **The scheduler's rules.** An unfinished task finishes today at the
+  earliest, even past its estimate. A task with no estimate, and every
+  task after it, has no dates.
+- **Corrections.** A wrong start, finish or wait is corrected by the
+  same key on the right recording day, which appends a new fact; the
+  wrong one stays in the log. Undoing an old act never overwrites
+  newer work ([architecture-log.md](architecture-log.md)), so undo
+  serves when the wrong act is recent. No further mechanism until a
+  trial asks for one.
+
+Still open:
+
+- **Replacement.** Step 0 had no facts for replacing tasks, and about
+  nine tasks in ten are replaced. A replaced task's estimate can be
+  censored at its replacement, left out, or compared with the total
+  of its replacements; the record keeps what all three need, and
+  Step 1 chooses by out-of-time score (design3, 3.1). Plain censoring
+  assumes that replacement says nothing about how long the task would
+  have taken, which is doubtful, because tasks are replaced when they
+  turn out different. The comparison with the total is biased in a
+  known direction: estimates of parts add up to more than the
+  estimate of the whole (Forsyth 2008, workflow 3), so Step 1 tries
+  leaving out first, and measures the ratio of the replacements'
+  estimates to the old estimate as a datum of its own. Tasks that
+  came after a replaced task come after all of its replacements
+  (ux-journey, Stage 4), and a replacement of one started task
+  inherits its start.
 - **Order.** How a manual order is recorded as appended facts, with an
   exact order only near the top.
 - **Requests.** Who asked, in what words, any promise, each report
