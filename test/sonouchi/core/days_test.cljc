@@ -40,6 +40,11 @@
     (is (= "2026-11-04" (days/add-working-days "2026-10-26" 7)) "B ends Wednesday")
     (is (= "2026-11-11" (days/add-working-days "2026-10-26" 12)) "E ends Wednesday"))
   (is (= "2026-10-26" (days/add-working-days "2026-10-24" 0)) "a weekend start moves to Monday")
+  (is (= "2026-10-23" (days/add-working-days "2026-10-26" -1)) "one working day back from Monday")
+  (is (= "2026-10-22" (days/add-working-days "2026-10-26" -2)))
+  (is (= -1 (days/working-days-from "2026-10-26" "2026-10-23")))
+  (is (= 3 (days/working-days-from "2026-10-26" "2026-10-29")))
+  (is (= 0 (days/working-days-from "2026-10-26" "2026-10-26")))
   (is (= 3 (days/working-days-between "2026-10-26" "2026-10-29")))
   (is (= 5 (days/working-days-between "2026-10-26" "2026-11-02")) "a weekend is not counted")
   (is (= 0 (days/working-days-between "2026-10-26" "2026-10-26")))
@@ -65,6 +70,12 @@
     (let [end (days/add-working-days day n)]
       (and (days/working-day? end)
            (= n (days/working-days-between day end))))))
+
+(defspec working-days-from-undoes-add-working-days 200
+  (prop/for-all [day gen-day
+                 n (gen/choose -100 100)]
+    (let [day0 (days/add-working-days day 0)]
+      (= n (days/working-days-from day0 (days/add-working-days day0 n))))))
 
 (defspec a-week-has-five-working-days 100
   (prop/for-all [day gen-day]

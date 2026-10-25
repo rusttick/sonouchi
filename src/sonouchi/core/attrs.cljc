@@ -254,6 +254,19 @@
   finish. 0 on the critical path."
     :schema number?}
 
+   ;; The chain behind a task, as sonouchi.core.chain lays it out
+
+   :chain/layers
+   {:doc "The tasks behind one task in layers, left to right: a vector
+  of vectors of task ids, each layer in its drawing order. The last
+  layer holds the task itself."
+    :schema [:vector [:vector any?]]}
+
+   :chain/edges
+   {:doc "The comes-after links among the tasks in :chain/layers, as a
+  set of [before after] pairs of task ids."
+    :schema [:set [:tuple any? any?]]}
+
    ;; Actions: what made an act (:act/action)
 
    :action/add-task
@@ -399,6 +412,107 @@
    {:doc "Text pasted into the new-task field. Several lines become
   several tasks."
     :schema [:tuple [:= :command/paste]]}
+
+   ;; Commands of the stand-up board, the schedule and the replacement
+   ;; display (ux-journey, Stages 3 to 5)
+
+   :command/cursor-up
+   {:doc "Move the cursor to the card above."
+    :schema keyword?}
+
+   :command/cursor-down
+   {:doc "Move the cursor to the card below."
+    :schema keyword?}
+
+   :command/cursor-left
+   {:doc "Move the cursor to the column on the left."
+    :schema keyword?}
+
+   :command/cursor-right
+   {:doc "Move the cursor to the column on the right."
+    :schema keyword?}
+
+   :command/mark
+   {:doc "Mark the task under the cursor, or unmark it (x)."
+    :schema keyword?}
+
+   :command/query
+   {:doc "Move to the query bar (/)."
+    :schema keyword?}
+
+   :command/day-back
+   {:doc "Move the recording day one working day back ([)."
+    :schema keyword?}
+
+   :command/day-forward
+   {:doc "Move the recording day one working day forward (])."
+    :schema keyword?}
+
+   :command/show-stand-up
+   {:doc "Show the stand-up board (1)."
+    :schema keyword?}
+
+   :command/show-schedule
+   {:doc "Show the schedule (2)."
+    :schema keyword?}
+
+   :command/open-replace
+   {:doc "Open the replacement display for the marked tasks, or the task
+  under the cursor (r); from the query bar, with no old tasks and the
+  query as the first title."
+    :schema keyword?}
+
+   :command/open-estimate
+   {:doc "Open the estimate field on the task under the cursor (t)."
+    :schema keyword?}
+
+   :command/open-wait
+   {:doc "Open the wait field on the task under the cursor (b), when it
+  has no open wait."
+    :schema keyword?}
+
+   :command/open-title
+   {:doc "Make the title of the task under the cursor editable (e)."
+    :schema keyword?}
+
+   :command/record
+   {:doc "Record what the open field or the replacement display holds,
+  as one act (Enter in a field, Cmd+Enter or Ctrl+Enter in the
+  replacement display)."
+    :schema keyword?}
+
+   :command/next-line
+   {:doc "Start the next new-task line in the replacement display
+  (Enter)."
+    :schema keyword?}
+
+   :command/toggle-estimate
+   {:doc "Move between a line's title and its estimate in the
+  replacement display (Tab)."
+    :schema keyword?}
+
+   :command/state-up
+   {:doc "Move the current line's state one step towards To do
+  (Alt+Up)."
+    :schema keyword?}
+
+   :command/state-down
+   {:doc "Move the current line's state one step towards Done
+  (Alt+Down)."
+    :schema keyword?}
+
+   :command/reason-person
+   {:doc "In the wait field: the reason is a person (1)."
+    :schema keyword?}
+
+   :command/reason-outside-party
+   {:doc "In the wait field: the reason is an outside party (2)."
+    :schema keyword?}
+
+   :command/reason-not-in-plan
+   {:doc "In the wait field: something else came first (3). Records at
+  once, since there is no one to name."
+    :schema keyword?}
 
    ;; Key presses, as the shell describes them to the core
 

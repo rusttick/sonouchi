@@ -173,11 +173,19 @@ A task that appears in two groups looks identical in both. Why: Okoe
   reasons are design 3's three: a person, an outside party, and not in
   the plan, which is the owner saying that something else came first.
   Design 3 uses these reasons to measure how much delay came from
-  outside the plan (Step 0, "Data recorded"; Step 6's H6). The board
-  still has a Waiting column, because the whiteboard has one and the
-  board is laid out like it (visual momentum, Woods 1984, visual 2.2);
-  the column is a view of the open waits, and each card in it says
-  whether its task has started. A wait on a person is
+  outside the plan (Step 0, "Data recorded"; Step 6's H6). So the
+  board has no Waiting column: a waiting task stays in its column, To
+  do or In progress, and its card says on whom it waits and since
+  when. The board's one question is which tasks have no record for
+  the day (V1), and a column of waits answers a different one, whom to
+  chase; a column would also hide whether the task has started, and
+  would move the card out and back (V6). Whom to chase is answered by
+  the query bar, which matches the names in open waits as well as the
+  words of titles (V15). No study compares a blocked column with a
+  mark in place; the Kanban evidence is descriptive (Ahmad 2018,
+  workflow 5), so this is the rules' choice, and a trial can overturn
+  it. The whiteboard may keep its blocked column; a post-it there
+  maps to a marked card here. A wait on a person is
   usually a request the owner made to them: later, waits and the
   requests made to the owner become one kind of thing, recorded as
   facts without forcing every exchange through a protocol (Winograd

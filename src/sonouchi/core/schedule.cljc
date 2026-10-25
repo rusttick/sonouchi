@@ -6,7 +6,10 @@
   comparable with each other, such as all keywords or all strings. Each
   function reads only the attributes it names.
 
-  The backward pass and the critical path come next."
+  Days are working days counted from day 0, the start of today. A task
+  that has started and not finished finishes at day 1 at the earliest,
+  however far past its estimate it is (architecture, \"Open questions
+  about the model\")."
   (:require [clojure.set :as set]))
 
 (defn unknown-tasks
@@ -67,6 +70,16 @@
       (apply max 0 (map #(get-in times [% :schedule/finish-day])
                         (:task/after task)))))
 
+(defn- finish-of
+  "The finish of a task that starts on start: its actual finish, or its
+  start plus its estimate, which for a started task is day 1 at the
+  earliest."
+  [start {:task/keys [actual-start-day actual-finish-day estimate-days]}]
+  (cond
+    actual-finish-day actual-finish-day
+    actual-start-day (max 1 (+ start estimate-days))
+    :else (+ start estimate-days)))
+
 (defn forward-pass
   "Start and finish day of every task, taking the tasks in order, which
   comes from topological-order. Days are working days from day 0.
@@ -80,8 +93,7 @@
                   start (start-day times task)]
               (assoc times id
                      {:schedule/start-day start
-                      :schedule/finish-day (or (:task/actual-finish-day task)
-                                               (+ start (:task/estimate-days task)))})))
+                      :schedule/finish-day (finish-of start task)})))
           {}
           order))
 
@@ -90,11 +102,39 @@
   [times]
   (apply max 0 (map :schedule/finish-day (vals times))))
 
+(defn with-slack
+  "times with each task's :schedule/slack-days: how many working days it
+  can move without moving the last finish, from the backward pass over
+  order. It is 0 when the task cannot move, and also when recorded
+  dates put it later than what comes after it allows, which actual
+  dates can do."
+  [tasks order times]
+  (let [successors-of (successors tasks)
+        end (finish-day times)
+        late-starts (reduce (fn [late id]
+                              (let [{start :schedule/start-day finish :schedule/finish-day} (times id)
+                                    late-finish (apply min end (map late (successors-of id)))]
+                                (assoc late id (- late-finish (- finish start)))))
+                            {}
+                            (reverse order))]
+    (into {} (for [[id days] times]
+               [id (assoc days :schedule/slack-days
+                          (max 0 (- (late-starts id) (:schedule/start-day days))))]))))
+
+(defn critical
+  "The ids of the tasks with no slack: the critical path."
+  [times]
+  (set (for [[id {:schedule/keys [slack-days]}] times
+             :when (zero? slack-days)]
+         id)))
+
 (defn schedule
   "The Step 0 schedule of tasks, or a description of why there is none.
 
   Returns {:schedule/times {id {:schedule/start-day d
-                                :schedule/finish-day d}}},
+                                :schedule/finish-day d
+                                :schedule/slack-days d}}
+           :schedule/critical #{id ...}},
   or {:schedule/unknown-tasks #{id ...}},
   or {:schedule/cycle #{id ...}}."
   [tasks]
@@ -103,5 +143,7 @@
       {:schedule/unknown-tasks unknown}
       (let [result (topological-order tasks)]
         (if-let [order (:schedule/order result)]
-          {:schedule/times (forward-pass tasks order)}
+          (let [times (with-slack tasks order (forward-pass tasks order))]
+            {:schedule/times times
+             :schedule/critical (critical times)})
           result)))))

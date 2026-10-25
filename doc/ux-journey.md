@@ -62,8 +62,9 @@ apart:
 - **comes after:** a task that cannot start until other tasks finish.
   This is design3's dependency, and the schedule uses it.
 - **waiting:** a task held up by something outside the owner's
-  control, such as a person or an outside party. This is the board's
-  Waiting column, and design3 uses its reasons in Step 6.
+  control, such as a person or an outside party. It is a mark on the
+  card, not a column (ux-design, "Waiting is not a state"), and
+  design3 uses its reasons in Step 6.
 
 ## The frame
 
@@ -74,8 +75,9 @@ The same on every screen (V9):
 - **The action's name,** large (V10): STAND-UP, REPLACE or SCHEDULE.
 - **The query bar,** top centre. `/` moves to it. Typing filters every
   column at once to the tasks that match every typed word: a word of
-  the title that starts with it, in any case and any order, allowing
-  one typing mistake per five letters, with the first letter right.
+  the title, or of whom an open wait is on, that starts with it, in
+  any case and any order, allowing one typing mistake per five
+  letters, with the first letter right.
   What is left keeps its order (V6). This is the check for duplicates.
   Enter opens the replacement display with no old tasks and the query
   text as the first new title, so a task that was not found takes no
@@ -102,23 +104,25 @@ The same on every screen (V9):
 **The question.** Which tasks on the whiteboard have no record yet for
 the recording day? (V1, V3.)
 
-**The display.** Four columns, side by side, in the whiteboard's
+**The display.** Three columns, side by side, in the whiteboard's
 order. Each is computed from the facts, and nothing about columns or
 positions is stored (ux-design, "The concept"):
 
-| Column      | A task is here when                       |
-|-------------|-------------------------------------------|
-| To do       | it has not started, and is not waiting    |
-| In progress | it has started, not finished, not waiting |
-| Waiting     | it has a wait that has not ended          |
-| Done        | it has finished                           |
+| Column      | A task is here when              |
+|-------------|----------------------------------|
+| To do       | it has not started               |
+| In progress | it has started, and not finished |
+| Done        | it has finished                  |
 
 A card shows the task's title, and under it, small, "no estimate"
 when it has none. It does not show the estimate itself, because a
 task's own earlier estimate anchors a re-estimate (ux-design,
 "Estimates are made fresh"); the schedule shows the numbers. A card
-in Waiting also says whether the task has started, and on whom it
-waits. Within a column,
+with an open wait says, small, on whom it waits and since when, such
+as "waiting on Tanaka since Tue 20 Oct", or "waiting: not in the
+plan"; the task keeps its column (ux-design, "Waiting is not a
+state"). Typing the name in the query bar lists the tasks waiting on
+that person. Within a column,
 the card that arrived last is at the top: the order follows the times
 of the owner's acts, so nothing moves unless the owner moved it (V6).
 Done keeps every finished task, newest first; the query finds old
@@ -136,8 +140,8 @@ click. The keys are shown beside the cursor (V11):
 | `s` | started on the recording day | moves to In progress |
 | `f` | finished on the recording day | moves to Done |
 | `w` | worked on, on the recording day | gets its ✓ |
-| `b` | waiting begins: a small field on the card asks the reason and on whom, Enter records | moves to Waiting |
-| `b` on a waiting card | waiting ends | moves back to To do or In progress |
+| `b` | waiting begins: a small field on the card asks the reason and on whom, Enter records | gets its wait line |
+| `b` on a waiting card | waiting ends | loses its wait line |
 | `e` | correct the wording: the title becomes editable in place, Enter records, Escape leaves it as it was | keeps its place |
 | `t` | estimate: see "Estimating", below | loses "no estimate" |
 | `a` | the task comes after exactly the marked tasks; with none marked, after none. See "Comes after", below | keeps its place |
@@ -185,8 +189,8 @@ there are no new lines, it is dropping.
   had started, so that the elapsed time design3 measures is not lost
   when a running task is split or reframed; otherwise it started on
   the recording day. A new task done finished on the recording day.
-  The line says which start it will get. Waiting is set afterwards,
-  on the board.
+  The line says which start it will get. A wait is set afterwards, on
+  the board.
 - ⌘Enter records the whole replacement as one act, with each new
   task's estimate, and returns to the board with the new cards marked
   (V7). The old cards leave the board.

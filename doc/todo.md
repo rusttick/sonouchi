@@ -1,9 +1,5 @@
 # The next design and coding tasks. No subsections. no descriptions, those go in design docs. no numbering. When an item is done, delete it.
 
-
-- Build `sonouchi.core.estimates`
-- Build `sonouchi.core.board`
-- Build the rest of `sonouchi.core.schedule`: the backward pass and the critical path, from the board's tasks
 - Build `sonouchi.core.chain` ([ux-journey.md](ux-journey.md), "The schedule")
 - Build the frame, the board and the query bar ([ux-journey.md](ux-journey.md), "The frame", [architecture-search.md](architecture-search.md))
 - Build the stand-up keys ([ux-journey.md](ux-journey.md), "Stage 3")

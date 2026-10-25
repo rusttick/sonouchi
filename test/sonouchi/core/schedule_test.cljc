@@ -19,10 +19,24 @@
   (update-vals times (juxt :schedule/start-day :schedule/finish-day)))
 
 (deftest running-example-dates
-  (let [times (:schedule/times (schedule/schedule running-example))]
+  (let [{:schedule/keys [times critical]} (schedule/schedule running-example)]
     (is (= {:A [0 3] :B [3 8] :C [3 7] :D [8 10] :E [10 13]}
            (days times)))
-    (is (= 13 (schedule/finish-day times)))))
+    (is (= 13 (schedule/finish-day times)))
+    (is (= #{:A :B :D :E} critical))
+    (is (= 1 (get-in times [:C :schedule/slack-days])) "C can slip a day")
+    (is (= 0 (get-in times [:B :schedule/slack-days])))))
+
+(deftest a-started-task-finishes-today-at-the-earliest
+  (testing "A started three days ago with an estimate of 2 is still running"
+    (let [tasks (assoc-in running-example [:A :task/actual-start-day] -3)
+          times (:schedule/times (schedule/schedule tasks))]
+      (is (= [-3 1] (:A (days times))))
+      (is (= [1 6] (:B (days times))))))
+  (testing "a started task within its estimate keeps it"
+    (let [tasks (assoc-in running-example [:A :task/actual-start-day] -1)
+          times (:schedule/times (schedule/schedule tasks))]
+      (is (= [-1 2] (:A (days times)))))))
 
 (deftest actual-dates-replace-computed-ones
   (testing "B finished on day 10 instead of 8, so D and E move"
@@ -81,3 +95,19 @@
                        (every? #(<= (get-in times [% :schedule/finish-day]) start-day)
                                (:task/after task)))))
               tasks))))
+
+(defspec the-critical-path-is-a-chain-that-sets-the-finish 200
+  (prop/for-all [tasks gen-tasks]
+    (let [{:schedule/keys [times critical]} (schedule/schedule tasks)
+          end (schedule/finish-day times)]
+      (and (seq critical)
+           (some #(= end (get-in times [% :schedule/finish-day])) critical)
+           (every? #(<= 0 (get-in times [% :schedule/slack-days])) (keys times))
+           (every? (fn [id]
+                     (let [{:schedule/keys [start-day finish-day]} (times id)]
+                       (or (= end finish-day)
+                           (some #(and (critical %)
+                                       (= finish-day (get-in times [% :schedule/start-day])))
+                                 (keys times))
+                           (zero? start-day))))
+                   critical)))))

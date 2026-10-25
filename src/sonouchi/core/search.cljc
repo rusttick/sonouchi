@@ -43,23 +43,41 @@
             (assoc-in idx [:docs id] terms)
             terms)))
 
+(defn reindex-texts
+  "idx with each task whose id is in ids indexed again from texts, a map
+  of task id to the text it is found by. A task without text in texts
+  leaves the index."
+  [idx tokenize texts ids]
+  (reduce (fn [i id]
+            (let [text (texts id)]
+              (cond-> (drop-doc i id)
+                text (add-doc id (terms-of tokenize text)))))
+          idx
+          ids))
+
+(defn index-texts
+  "The index of every text in texts, a map of task id to the text it is
+  found by, split into words by tokenize."
+  [tokenize texts]
+  (reindex-texts empty-index tokenize texts (keys texts)))
+
+(defn- titles
+  [entities]
+  (into {} (keep (fn [[id e]] (when-let [title (:task/title e)] [id title]))
+                 entities)))
+
 (defn reindex
   "idx with each task whose id is in ids indexed again from entities, a
   map of entity id to its current map such as sonouchi.core.log/entities
   returns. A task without a :task/title in entities leaves the index."
   [idx tokenize entities ids]
-  (reduce (fn [i id]
-            (let [title (get-in entities [id :task/title])]
-              (cond-> (drop-doc i id)
-                title (add-doc id (terms-of tokenize title)))))
-          idx
-          ids))
+  (reindex-texts idx tokenize (titles entities) ids))
 
 (defn index
   "The index of every :task/title in entities, a map of entity id to its
   current map, split into words by tokenize."
   [tokenize entities]
-  (reindex empty-index tokenize entities (keys entities)))
+  (index-texts tokenize (titles entities)))
 
 (defn- next-row
   "Row i of the edit distance table from a to b, from the two rows

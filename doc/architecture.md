@@ -76,7 +76,9 @@ Built:
 | `sonouchi.core.keys` | which key does what on each platform, and how keys are shown | [architecture-interface.md](architecture-interface.md) |
 | `sonouchi.core.tasks` | adding tasks, and the tasks added today | [architecture-interface.md](architecture-interface.md) |
 | `sonouchi.core.view` | the page, as hiccup | [architecture-interface.md](architecture-interface.md) |
-| `sonouchi.core.schedule` | design3's Step 0: the forward pass of the critical path method, with actual days replacing computed ones, and cycles and unknown tasks described as data. The backward pass and the critical path are not written yet | this page |
+| `sonouchi.core.schedule` | design3's Step 0: the forward pass of the critical path method with actual days replacing computed ones, the backward pass for slack, the critical path, and cycles and unknown tasks described as data. Day 0 is the start of today; a started task finishes at day 1 at the earliest | this page |
+| `sonouchi.core.estimates` | every estimate with the time it was made, each task's latest, whether design3 counts it, parsing what the owner typed, and the act that records one | this page, "The data for version 0" |
+| `sonouchi.core.board` | the tasks on the board, each one's column and place, its open wait, the days it has records for, the text it is found by, and the tasks turned into the scheduler's input from today | this page, "The data for version 0" |
 | `sonouchi.core.days` | days as ISO strings: today from the shell's clock, the next and previous day, working days, adding and counting them, and a day's label such as "Mon 26 Oct". No host calendar: the civil-date arithmetic is written out, so both platforms agree | this page, "The data for version 0" |
 
 The page built today is a quick-entry field with the tasks added today
@@ -86,9 +88,6 @@ Planned for version 0:
 
 | Namespace | What it does |
 |---|---|
-| `sonouchi.core.board` | each task's column, the order in a column, and whether a task has a record for the recording day |
-| `sonouchi.core.estimates` | each task's latest estimate, and whether design3 counts it |
-| `sonouchi.core.schedule`, more | the backward pass and the critical path; and the tasks on the board turned into the scheduler's input |
 | `sonouchi.core.chain` | the tasks behind one task, laid out in layers with few crossings, for the schedule's drawing (ux-journey, "The schedule") |
 
 ## The data for version 0
@@ -156,7 +155,7 @@ times and each wait keeps its own times:
 | Action | Patches |
 |---|---|
 | `:action/record-start` | the task's `:task/started`, and the day added to `:task/worked-on` |
-| `:action/record-finish` | `:task/finished`, and the day added to `:task/worked-on` |
+| `:action/record-finish` | `:task/finished`, and the day added to `:task/worked-on`; also `:task/started`, when the task had none, since a finished task has started |
 | `:action/record-worked-on` | the day added to `:task/worked-on` |
 | `:action/begin-wait` | a new wait entity |
 | `:action/end-wait` | the wait's `:wait/ended` |
@@ -174,9 +173,11 @@ that logs from quick entry still load; new tasks come from
 
 **Computed, never stored:**
 
-- a task's column: Done if it has `:task/finished`, Waiting if a wait
-  for it has no `:wait/ended`, In progress if it has `:task/started`,
-  To do otherwise. Tasks with `:task/replaced-by` are not on the board
+- a task's column: Done if it has `:task/finished`, In progress if it
+  has `:task/started`, To do otherwise. Tasks with `:task/replaced-by`
+  are not on the board
+- a task's open wait: the wait for it with no `:wait/ended`, shown on
+  the card in its column (ux-design, "Waiting is not a state")
 - the order in a column: by the time of the act that last moved the
   task into it, latest first
 - whether a task has a record for the recording day: any act that
@@ -190,7 +191,10 @@ that logs from quick entry still load; new tasks come from
   path, from the tasks' latest estimates, `:task/after`, actual dates
   and today. A task with no estimate has no dates, nor does any task
   after it. A task that is not finished finishes today at the
-  earliest, even when it has run past its estimate
+  earliest, even when it has run past its estimate. Days are counted
+  in working days from day 0, today or the next working day, so a
+  finished task's finish is the start of the working day after its
+  last; the board turns days into numbers and back
 - whether the recording day is more than one working day before
   today, which the frame shows (ux-journey, "The frame")
 

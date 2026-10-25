@@ -121,13 +121,20 @@
   the first when it is a working day. With n 0, the day itself, or the
   next working day if day is not one. So a task of 3 working days that
   starts on a Monday ends on add-working-days of Monday and 2, the
-  Wednesday."
+  Wednesday. With n negative, the working day that many working days
+  before day, not counting day: -1 from a Monday is the Friday."
   [day n]
-  (->> (iterate inc (day-number day))
-       (filter working-number?)
-       (drop n)
-       first
-       iso))
+  (if (neg? n)
+    (->> (iterate dec (dec (day-number day)))
+         (filter working-number?)
+         (drop (dec (- n)))
+         first
+         iso)
+    (->> (iterate inc (day-number day))
+         (filter working-number?)
+         (drop n)
+         first
+         iso)))
 
 (defn working-days-between
   "How many working days lie in [from, to): from itself when it is a
@@ -138,3 +145,13 @@
   (let [a (day-number from)
         b (day-number to)]
     (count (filter working-number? (range a b)))))
+
+(defn working-days-from
+  "The signed count of working days from day0 to day: how many working
+  days lie in [day0, day) when day is later, and minus how many lie in
+  [day, day0) when it is earlier. It is the inverse of add-working-days
+  when both days are working days."
+  [day0 day]
+  (if (neg? (compare day day0))
+    (- (working-days-between day day0))
+    (working-days-between day0 day)))

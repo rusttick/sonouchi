@@ -27,7 +27,10 @@ The map is the namespace's own: other code reads it only through the
 functions below.
 
 - `(search/index tokenize entities)` builds the index of every
-  `:task/title` in an entities map.
+  `:task/title` in an entities map. Version 0 adds to each task's
+  text the `:wait/on` of its open waits, so that a name finds the
+  tasks waiting on that person (ux-journey, "The frame"); the text a
+  task is indexed by is given to the index by the caller.
 - `(search/reindex idx tokenize entities ids)` indexes the tasks in
   `ids` again from `entities`. A task without a title leaves the index.
   Updating for one act changes only the tasks the act touched.
