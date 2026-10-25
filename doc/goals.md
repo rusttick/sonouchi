@@ -155,9 +155,17 @@ above needs them:
 - facets, suggestions and saved queries
 - stale tasks fading, and lapses showing
 - a time view for the owner's boss
-- predictions by the keystroke-level model, and the performance log
+- predictions by the keystroke-level model, and the performance log:
+  each act cross-checked with the Event Timing API, and a recorded
+  morning replayed on the Pi and an old MacBook
 - Japanese text, beyond what works at no cost
 - a settings screen, until the first setting is needed
+- a drawing library, D3 or Vega-Lite, if the schedule needs more than
+  plain SVG from hiccup
+- a browser test runner for the shell, if the shell grows beyond what
+  the REPL and the trials catch
+- whether the GitHub Projects board is still needed, once the session
+  after the stand-up works
 
 The research behind them stays in
 [research-workflow.md](research-workflow.md) and

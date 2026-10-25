@@ -103,7 +103,7 @@ calendars (its step 6).
 
 This is to change. Time in the data is to be instants and durations in
 milliseconds, with working days only in what the owner is asked and
-shown ([todo.md](todo.md)). Until then, the scheduler counts working
+shown ("Time in the data", in the open questions below). Until then, the scheduler counts working
 days from day 0, as its attributes `:task/estimate-days` and
 `:task/actual-start-day` say.
 
@@ -205,7 +205,9 @@ index is updated with each act, for the tasks the act changed.
 Each key act is timed in the shell from the key press to the next
 painted frame, and the footer shows it, flagged above 0.1 s (V12).
 Speed is judged on a release build. The schedule is computed again
-after every act, so it is part of what is timed.
+after every act, so it is part of what is timed. It is measured with a
+few hundred tasks, and includes building the search index when the
+page opens.
 
 ## Open questions about the model
 
@@ -238,7 +240,18 @@ Step 0 in [design3.md](design3.md).
   study effort later.
 - **The unit** the owner is asked in is always working days, stored
   with each estimate. How time is held in the data is a separate
-  question ([todo.md](todo.md)).
+  question, below.
+- **Time in the data.** Instants and millisecond durations, in the
+  form Clojure uses on both platforms. Working days appear only in
+  what the owner is asked and shown. Design3 settles what a duration
+  measures, working time or elapsed time, since a 3-day task started
+  on a Friday is 5 days on the clock. The answer replaces the
+  scheduler's day attributes, and the ISO days of `sonouchi.core.days`
+  above, with new attributes; `sonouchi.core.days` then presents time
+  in working days, from `:state/now` and `:state/utc-offset-minutes`.
+- **Corrections.** How a start, finish or wait that was recorded
+  wrongly is corrected after other acts have followed it, when undo
+  would undo too much.
 - **Order.** How a manual order is recorded as appended facts, with an
   exact order only near the top.
 - **Requests.** Who asked, in what words, any promise, each report
