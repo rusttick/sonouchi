@@ -85,11 +85,12 @@
   (weekday-names (weekday-index (day-number day))))
 
 (defn label
-  "The day as the owner reads it, such as \"Mon 26 Oct\"."
+  "The day as the owner reads it, such as \"Mon Oct 26\": weekday,
+  month, day, the order in which the owner says it at the stand-up."
   [day]
   (let [n (day-number day)
         [_ m d] (civil-from-days n)]
-    (str (weekday-names (weekday-index n)) " " d " " (month-names (dec m)))))
+    (str (weekday-names (weekday-index n)) " " (month-names (dec m)) " " d)))
 
 (defn- working-number?
   [n]
@@ -145,6 +146,20 @@
   (let [a (day-number from)
         b (day-number to)]
     (count (filter working-number? (range a b)))))
+
+(defn relative
+  "How far day is before today, in words the owner reads beside it:
+  \"today\", \"yesterday\" for the calendar day before, \"last working
+  day\" for the one working day before when that is not yesterday, as
+  Friday is from a Monday, and \"n working days ago\" further back.
+  day is a working day on or before today."
+  [day today]
+  (let [n (working-days-between day today)]
+    (cond
+      (= day today) "today"
+      (= day (previous-day today)) "yesterday"
+      (= 1 n) "last working day"
+      :else (str n " working days ago"))))
 
 (defn working-days-from
   "The signed count of working days from day0 to day: how many working

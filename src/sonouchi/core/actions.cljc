@@ -55,24 +55,17 @@
 ;; What the board shows, for the commands that act on the cursor
 
 (defn- with-board
-  "Calls f with the entities, the columns and the id under the cursor."
+  "Calls f with the entities, the columns and the id under the cursor on
+  the screen shown, the same one the view marks."
   [state tokenize f]
   (let [entities (screen/current state)
         shown (screen/matching state tokenize entities)
         cols (screen/columns state entities shown)]
-    (f entities cols (screen/cursor state cols))))
-
-(defn- rows
-  "The ids the cursor moves over: the schedule's rows on the schedule
-  screen, else the columns' ids in order."
-  [state entities cols]
-  (if (= :schedule (:state/screen state))
-    (screen/rows state entities (screen/latest-estimates state entities))
-    (vec (apply concat cols))))
+    (f entities cols (screen/cursor-on-screen state entities shown cols))))
 
 (defn- move
   "The cursor moved dc columns and dr rows, staying on a card. On the
-  schedule, dr moves along the rows and dc does nothing."
+  schedule, dr moves along what the schedule shows and dc does nothing."
   [state tokenize dc dr]
   (with-board
     state tokenize
@@ -81,7 +74,8 @@
         (nil? cursor) state
 
         (= :schedule (:state/screen state))
-        (let [ids (rows state entities cols)
+        (let [ids (screen/schedule-ids state entities (screen/latest-estimates state entities)
+                                       (screen/matching state tokenize entities))
               i (or (index-of ids cursor) 0)
               i' (-> (+ (max i 0) dr) (max 0) (min (dec (count ids))))]
           (if (seq ids) (assoc state :state/cursor (ids i')) state))
@@ -400,10 +394,11 @@
 ;; The frame
 
 (defn- clear
-  "Escape: closes the open field, else leaves the replacement display,
-  else clears the query."
+  "Escape: closes the menu, else the open field, else leaves the
+  replacement display, else clears the query."
   [state _ _ _]
   (cond
+    (:state/menu-open state) (dissoc state :state/menu-open)
     (:state/field state) (dissoc state :state/field)
     (= :replace (:state/screen state)) (-> state (dissoc :state/draft) (assoc :state/screen :stand-up))
     (seq (:state/query state)) (assoc state :state/query "")
@@ -412,7 +407,13 @@
 (defn- show
   [screen-name]
   (fn [state _ _ _]
-    (-> state (dissoc :state/field) (assoc :state/screen screen-name))))
+    (-> state (dissoc :state/field :state/menu-open) (assoc :state/screen screen-name))))
+
+(defn- toggle-menu
+  [state _ _ _]
+  (if (:state/menu-open state)
+    (dissoc state :state/menu-open)
+    (assoc state :state/menu-open true)))
 
 (defn- day-back
   [state _ _ _]
@@ -421,10 +422,9 @@
 (defn- day-forward
   "One working day forward, but not past today."
   [state _ _ _]
-  (let [next-day (days/next-working-day (screen/recording-day state))]
-    (if (pos? (compare next-day (screen/today state)))
-      state
-      (assoc state :state/recording-day next-day))))
+  (if-let [next-day (screen/later-day state)]
+    (assoc state :state/recording-day next-day)
+    state))
 
 (defn- mark
   [state _ _ tokenize]
@@ -453,6 +453,8 @@
    :command/day-forward day-forward
    :command/show-stand-up (show :stand-up)
    :command/show-schedule (show :schedule)
+   :command/show-record (show :record)
+   :command/toggle-menu toggle-menu
    :command/clear clear
    :command/open-replace open-replace
    :command/open-estimate (open-field :estimate (constantly ""))

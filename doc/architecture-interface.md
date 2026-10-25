@@ -31,11 +31,15 @@
 The values both the views and the commands derive from the state:
 today and the recording day from the clock; the entities from the
 log; which tasks the query leaves visible; the three columns in the
-board's order; the cursor, which falls back to the first visible task;
-each task's latest estimate; the schedule from today; the rows of the
-schedule screen, in the order of the dependency graph with ties in the
-board's order; the tasks the last act changed (V7); and the search
-index, built or updated from the board's search texts.
+board's order; the cursor on the screen shown, which falls back to the
+first visible card on the board and the first visible row on the
+schedule, so that the views and the commands agree on it; each task's
+latest estimate; the schedule from today; the rows of the schedule
+screen, in the order of the dependency graph with ties in the board's
+order, and the tasks not estimated, both filtered by the query; the
+tasks the last act changed, and those whose scheduled dates it moved
+(V7); and the search index, built or updated from the board's search
+texts.
 
 ## `sonouchi.core.actions`
 
@@ -74,7 +78,9 @@ index, built or updated from the board's search texts.
 - `keys/chord` names a key press, such as `"Meta+Shift+Z"`.
 - `keys/command` returns the command for a chord on a platform, given
   the screen and the focus, or nil to leave the key to the browser. The
-  board's keys act only when nothing has the focus. Enter in the query
+  board's keys act only when nothing has the focus, and so do the
+  schedule's, which are only the acts of ux-journey's Stage 5, `t`,
+  `a`, `x`, `s` and `f`, with up, down and the frame's keys. Enter in the query
   bar opens the replacement display; Enter in a field records it; on a
   line of the replacement display Enter starts the next line and
   Cmd+Enter or Ctrl+Enter records the whole. Undo and redo act only when
@@ -95,9 +101,12 @@ task's depth, which orders the schedule's rows.
 
 `view/root` returns the whole page from the state and the tokenizer:
 
-- the frame (V9): the app's name, the screen's name, the query bar, the
-  count shown of all, the recording day flagged when more than a
-  working day back, the screens with their keys, export and import
+- the frame (V9): the mascot and the screen's name, as one button that
+  opens the menu of screens, each with its key, name and purpose, while
+  `:state/menu-open` is set; the query bar with the count shown of all inside its
+  border, and the recording day flagged when more than a working day
+  back, with its keys as buttons and `screen/later-day` deciding
+  whether it can move later
 - the board: three columns of cards. A card shows its title, "no
   estimate" when it has none, its open wait, the open field when one is
   on it, and beside the cursor the keys (V11). Recorded cards are
@@ -107,6 +116,15 @@ task's depth, which orders the schedule's rows.
   new task with its state, title, estimate and a note when the estimate
   does not parse or will not count
 - the schedule: the finish and the critical path in words, a table of
-  rows with a bar on the critical ones, the chain behind the cursor's
-  task as SVG, and the tasks not estimated with what stops each
+  the rows the query leaves visible with a bar on the critical ones, the
+  tasks not estimated with what stops each, the keys, and the chain
+  behind the cursor's task as SVG. Rows and tasks not estimated take the
+  cursor, the marks and the estimate field as cards do, and the ones the
+  last act changed or moved are outlined (V7)
+- the record: the log's size in acts and tasks and the days it spans,
+  export, and import, which the shell carries out
 - any problems, and the footer with the last act's time (V12)
+
+Every key shown on screen is a `kbd` element, drawn as a key cap: the
+hints beside the cursor and the fields, the menu, the recording day's
+keys, and the empty screens' instructions.

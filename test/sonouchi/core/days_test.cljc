@@ -21,8 +21,8 @@
   (is (= "Thu" (days/weekday "1970-01-01")))
   (is (= "Sun" (days/weekday "2026-10-25")))
   (is (= "Mon" (days/weekday "2026-10-26")))
-  (is (= "Mon 26 Oct" (days/label "2026-10-26")))
-  (is (= "Fri 6 Nov" (days/label "2026-11-06")))
+  (is (= "Mon Oct 26" (days/label "2026-10-26")))
+  (is (= "Fri Nov 6" (days/label "2026-11-06")))
   (is (days/working-day? "2026-10-26"))
   (is (days/working-day? "2026-10-30"))
   (is (not (days/working-day? "2026-10-31")))
@@ -49,6 +49,15 @@
   (is (= 5 (days/working-days-between "2026-10-26" "2026-11-02")) "a weekend is not counted")
   (is (= 0 (days/working-days-between "2026-10-26" "2026-10-26")))
   (is (= 0 (days/working-days-between "2026-10-29" "2026-10-26")) "to before from"))
+
+(deftest how-far-back-in-words
+  (is (= "today" (days/relative "2026-10-27" "2026-10-27")))
+  (is (= "yesterday" (days/relative "2026-10-26" "2026-10-27")) "Tuesday, of Monday")
+  (is (= "last working day" (days/relative "2026-10-23" "2026-10-26")) "Monday, of Friday")
+  (is (= "yesterday" (days/relative "2026-10-23" "2026-10-24")) "Saturday, of Friday")
+  (is (= "last working day" (days/relative "2026-10-23" "2026-10-25")) "Sunday, of Friday")
+  (is (= "2 working days ago" (days/relative "2026-10-22" "2026-10-26")) "Monday, of Thursday")
+  (is (= "5 working days ago" (days/relative "2026-10-19" "2026-10-26")) "a week back"))
 
 (deftest today-from-the-clock
   (is (= "2026-10-19" (days/local-day #inst "2026-10-19T00:30:00Z" 540)) "09:30 in Japan")

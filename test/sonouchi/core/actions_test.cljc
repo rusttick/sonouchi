@@ -75,6 +75,15 @@
   (is (= :stand-up (:state/screen empty-state)))
   (is (= :schedule (:state/screen (run empty-state [:command/show-schedule])))))
 
+(deftest the-menu-of-screens
+  (let [opened (run empty-state [:command/toggle-menu])]
+    (is (true? (:state/menu-open opened)))
+    (is (not (contains? (run opened [:command/toggle-menu]) :state/menu-open)) "a second click closes it")
+    (is (not (contains? (run opened [:command/clear]) :state/menu-open)) "Escape closes it")
+    (let [chosen (run opened [:command/show-schedule])]
+      (is (= :schedule (:state/screen chosen)))
+      (is (not (contains? chosen :state/menu-open)) "choosing a screen closes it"))))
+
 (deftest adding-a-task-from-the-query-bar
   (let [state (add empty-state "measure spindle runout")]
     (is (= "measure spindle runout" (:task/title (task state "measure spindle runout"))))
@@ -289,7 +298,34 @@
     (testing "the cursor moves along the rows on the schedule"
       (let [s (run state [:command/show-schedule] [:command/cursor a] [:command/cursor-down])]
         (is (= b (:state/cursor s)))
-        (is (= b (:state/cursor (run s [:command/cursor-down]))) "stops at the end")))))
+        (is (= c (:state/cursor (run s [:command/cursor-down]))) "then to the tasks not estimated")
+        (is (= c (:state/cursor (run s [:command/cursor-down] [:command/cursor-down]))) "stops at the end")))))
+
+(deftest the-schedule-keys-act-on-the-row-it-shows
+  (let [state (add empty-state "A" "B" "C" "D")
+        a (titled state "A") b (titled state "B") c (titled state "C") d (titled state "D")
+        estimate (fn [s i n] (run s [:command/cursor i] [:command/open-estimate] [:command/typed :field (str n)] [:command/record]))
+        state (-> state (estimate a 3) (estimate b 5)
+                  (run [:command/cursor c] [:action/record-finish] [:command/show-schedule]))
+        ids (fn [s] (let [ents (entities s)]
+                      (screen/schedule-ids s ents (screen/latest-estimates s ents) (screen/matching s tokenize ents))))]
+    (is (= #{a b} (set (take 2 (ids state)))) "the rows")
+    (is (= d (last (ids state))) "then the task not estimated; C is done")
+    (testing "with the cursor on a done card, a key acts on the first row, which the schedule marks"
+      (is (= c (:state/cursor state)))
+      (is (= #{(first (ids state))} (:state/marked (run state [:command/mark])))))
+    (testing "a mark and a, on the schedule"
+      (let [s (run state [:command/cursor a] [:command/mark] [:command/cursor b] [:action/set-after])]
+        (is (= #{a} (:task/after (task s "B"))))
+        (is (empty? (:state/marked s)))))
+    (testing "the cursor reaches the tasks not estimated, so t estimates them"
+      (let [s (run state [:command/cursor-down] [:command/cursor-down] [:command/cursor-down]
+                   [:command/open-estimate] [:command/typed :field "2"] [:command/record])]
+        (is (= 2 (:estimate/amount ((screen/latest-estimates s (entities s)) d))))))
+    (testing "the query hides rows, and the cursor stays on what is shown"
+      (let [s (run state [:command/typed :query "B"])]
+        (is (= [b] (ids s)))
+        (is (= b (screen/cursor-on-screen s (entities s) (screen/matching s tokenize (entities s)) [])))))))
 
 (deftest estimates-all-is-what-the-board-reads
   (let [state (add empty-state "one")

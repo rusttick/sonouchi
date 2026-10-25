@@ -107,7 +107,7 @@
                               :command/reason-person :command/reason-outside-party)
       (when field (focus! "#field"))
       (:command/clear :command/record :command/reason-not-in-plan
-                      :command/show-stand-up :command/show-schedule)
+                      :command/show-stand-up :command/show-schedule :command/show-record)
       (when-not (or field (= :replace screen))
         (some-> js/document.activeElement .blur))
       nil)))
@@ -149,6 +149,14 @@
       (when command
         (.preventDefault e)
         (act! command)))))
+
+(defn- on-click!
+  "A click anywhere outside the open menu closes it. A click inside is
+  the menu's own: the mascot toggles it, and an entry chooses a screen."
+  [e]
+  (when (and (:state/menu-open @store)
+             (not (some-> (.-target e) (.closest ".menu"))))
+    (act! [:command/toggle-menu])))
 
 ;; Files
 
@@ -211,6 +219,7 @@
   (swap! store actions/start tokenize)
   (r/set-dispatch! dispatch!)
   (.addEventListener js/document "keydown" on-key!)
+  (.addEventListener js/document "click" on-click!)
   (add-watch store :render
              (fn [_ _ old state]
                (when-not (= (:state/log old) (:state/log state))

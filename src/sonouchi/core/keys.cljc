@@ -12,8 +12,7 @@
            "Ctrl+Shift+Z" :command/redo}})
 
 (def ^:private board-keys
-  "Chord to command when no field has the focus, on the board and the
-  schedule."
+  "Chord to command when no field has the focus, on the board."
   {"ArrowUp" [:command/cursor-up]
    "ArrowDown" [:command/cursor-down]
    "ArrowLeft" [:command/cursor-left]
@@ -31,7 +30,19 @@
    "[" [:command/day-back]
    "]" [:command/day-forward]
    "1" [:command/show-stand-up]
-   "2" [:command/show-schedule]})
+   "2" [:command/show-schedule]
+   "3" [:command/show-record]})
+
+(def ^:private schedule-keys
+  "Chord to command when no field has the focus, on the schedule: the
+  board's acts that ux-journey's Stage 5 gives it, t, a, x, s and f, on
+  a cursor that moves up and down, and the frame's keys."
+  (select-keys board-keys ["ArrowUp" "ArrowDown" "S" "F" "T" "A" "X" "/" "[" "]" "1" "2" "3"]))
+
+(def ^:private record-keys
+  "Chord to command when no field has the focus, on the record screen:
+  only the keys that choose a screen, since nothing there has a cursor."
+  (select-keys board-keys ["1" "2" "3"]))
 
 (def ^:private reasons
   {"1" [:command/reason-person]
@@ -54,6 +65,7 @@
    :command/day-forward "]"
    :command/show-stand-up "1"
    :command/show-schedule "2"
+   :command/show-record "3"
    :command/clear "Esc"
    :command/next-line "Enter"})
 
@@ -98,7 +110,7 @@
 
   Escape always clears. Undo and redo act only when no input with text
   has the focus, so that in one they undo typing, as usual. The board's
-  keys act only when nothing has the focus."
+  and the schedule's keys act only when nothing has the focus."
   [platform chord-name screen focus]
   (let [[where kind-or-i _ _] focus
         text (last (filter string? focus))
@@ -106,7 +118,11 @@
     (cond
       (= "Escape" chord-name) [:command/clear]
       undo (when (str/blank? (or text "")) [undo])
-      (nil? focus) (when (#{:stand-up :schedule} screen) (board-keys chord-name))
+      (nil? focus) (case screen
+                     :stand-up (board-keys chord-name)
+                     :schedule (schedule-keys chord-name)
+                     :record (record-keys chord-name)
+                     nil)
       (= :query where) (when (and (= "Enter" chord-name) (not (str/blank? text)))
                          [:command/open-replace :from-query])
       (= :field where) (cond

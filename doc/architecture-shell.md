@@ -18,6 +18,7 @@ inputs, calls the core, and carries out the effects.
 3. makes the state ready with `actions/start`, which builds the search
    index
 4. sets Replicant's dispatch function, and listens for key presses
+   and for clicks outside the open menu
 5. watches the atom: on every change it renders, and when the log has
    changed it saves it
 6. renders
@@ -36,6 +37,11 @@ A key press goes to `on-key!`. A key pressed during Japanese input
 conversion is ignored. Otherwise the press is described as a map, the
 focused element is described as `keys/command` wants it, from its id
 and `data-` attributes, and the command the core returns is run.
+
+A click outside the open menu of screens closes it, through
+`on-click!`, which listens on the whole document: the hiccup can only
+attach actions to its own elements, so "anywhere else" is the shell's
+to notice. The click still does whatever it does where it lands.
 
 Clicks and input events go to `dispatch!` with their action vector.
 The keyword `:field/text` in the vector is replaced by the input's

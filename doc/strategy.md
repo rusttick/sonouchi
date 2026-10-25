@@ -102,7 +102,8 @@ The documents are, on the whole, coherent and well grounded. design3, the resear
 the screens cite each other consistently, and each rule V1 to V17 names its source. The problems are
 few, and of three kinds: a decision that drifted from design3, a rule that the screens do not
 follow, and a thing the data model records that design3 does not ask for, or the reverse. Each is
-listed with the resolution this strategy proposes. None is applied yet.
+listed with the resolution this strategy proposed and what became of it. All of them are now settled
+in the documents, and version 0 is built on them.
 
 ### Changed decisions
 
@@ -150,30 +151,35 @@ task has an estimate, and the schedule shows the number.
    progress, and the recording day otherwise; the display says which. This is the sibling of the
    open question on a replaced task's estimate, and the record keeps what both answers need.
 
-### Rules the screens do not follow yet
+### Rules the screens did not follow
 
 - **Facets and saved queries (V15)** are a rule in `ux-design.md` and a parked item in `goals.md`.
   The rule stays, with a note that version 0 implements typed queries only, so the concept and the
-  version agree.
+  version agree. Done: V15 says so.
 - **Manual order** is a task principle, and the board's order is computed from act times. They do
   not conflict, since only an act moves a card (V6), but the principle should say that a hand-set
-  order is for the backlog, which is parked, and the board's order is the whiteboard's.
-- **"Waiting is not a state"** and the board's Waiting column. The column is computed from wait
-  entities, so the record is right, but a card in Waiting hides whether the task has started, which
-  design3's elapsed time depends on. The card says it in words, as `ux-journey.md` already requires;
-  `ux-design.md` should say that the column is a view of waits, kept because the whiteboard has it
-  (visual momentum, Woods 1984).
+  order is for the backlog, which is parked, and the board's order is the whiteboard's. Done: the
+  principle says so.
+- **"Waiting is not a state"** and the board's Waiting column. The column was computed from wait
+  entities, so the record was right, but a card in Waiting hid whether the task had started, which
+  design3's elapsed time depends on. This strategy proposed keeping the column as a view of waits,
+  because the whiteboard has one (visual momentum, Woods 1984). The column was removed instead: a
+  waiting task stays in To do or In progress, and its card says on whom it waits and since when. A
+  column of waits answers a different question from the board's (whom to chase, not which tasks have
+  no record for the day), and it moved cards out and back (V6); the query bar finds the tasks waiting
+  on a person. The grounds are in `ux-design.md`, "Waiting is not a state", and a trial can overturn
+  it.
 
-### Open questions the research can settle now
+### Open questions the research settled
 
 - **The schedule display.** The research already narrows this further than `goals.md` says. "When
   will each task finish?" asks for exact values, which cognitive fit sends to a table (Vessey 1991,
   visual 2.4). "Which tasks set the last date?" is a path question, which V17 sends to a small
   node-link chain. A Gantt chart has no evidence for it and some against (workflow 6), and
-  PlanningLines need slack, which is Step 0's backward pass and worth having anyway. So the sketch
-  compares a dated table with the critical path marked and the chain drawn beside the selected task,
-  against a Gantt chart as the familiar control. The sketch is still drawn, because V5 asks for
-  familiar forms first and the research is thin here.
+  PlanningLines need slack, which is Step 0's backward pass and worth having anyway. Settled on
+  2026-10-25: a dated table with the critical path marked, and the chain behind the selected task
+  drawn beside it, sketched in text on the running example in `ux-journey.md`, "The schedule". A
+  Gantt chart and PlanningLines wait until a trial asks for them, since the research is thin here.
 - **Corrections.** Undo appends a retraction, and undoing an old act never overwrites newer work
   (`architecture-log.md`). So correcting one old fact is already one act: a new patch for the task,
   with the right day, recorded with `:act/at` now. design3's rule 3 is satisfied, since both facts

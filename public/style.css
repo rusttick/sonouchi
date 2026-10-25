@@ -32,27 +32,167 @@ header {
   border-bottom: 1px solid var(--line);
   flex-wrap: wrap;
 }
-header .app { font-weight: 700; }
-header .part { font-size: 1.15rem; font-weight: 600; letter-spacing: 0.04em; }
-header #query { flex: 1 1 14rem; min-width: 10rem; padding: 0.25rem 0.5rem; }
-header .count { color: var(--quiet); font-variant-numeric: tabular-nums; }
-header .day { color: var(--quiet); }
-header .day.stale { color: var(--ink); font-weight: 600; }
-header .actions button, header .tools button {
+/* The mascot and the screen's name are one button, which opens the menu
+   of screens. The image is 64 px drawn at 32, sharp on 2x screens. */
+header .menu { position: relative; align-self: center; }
+header .app {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+header .app img { display: block; width: 32px; height: 32px; }
+/* The menu is a speech bubble from the mascot: to its right, over the
+   screen's name and the query bar, with its tail at the mascot's mouth
+   level. It is placed from the mascot, 32px wide, not from the whole
+   button. drop-shadow, not box-shadow, so that the tail has one too. */
+header .views {
+  position: absolute;
+  top: -6px;
+  left: calc(32px + 14px);
+  z-index: 10;
+  width: 24rem;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
+}
+/* The tail: a triangle in the border's colour, and a smaller one in the
+   bubble's over it, so that the border runs round the tail. Both are
+   centred 22px down, level with the middle of the 32px mascot. */
+header .views::before,
+header .views::after {
+  content: "";
+  position: absolute;
+  border-style: solid;
+  border-color: transparent;
+}
+header .views::before {
+  top: 12px;
+  left: -11px;
+  border-width: 10px 11px 10px 0;
+  border-right-color: var(--line);
+}
+header .views::after {
+  top: 13px;
+  left: -9px;
+  border-width: 9px 10px 9px 0;
+  border-right-color: var(--card);
+}
+header .views button {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  column-gap: 0.25rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  cursor: pointer;
+}
+header .views button:hover { background: #eef2f6; }
+header .views button.current { border-color: var(--line); }
+header .views kbd { justify-self: start; align-self: start; }
+header .views .name { font-weight: 600; }
+header .views .purpose { grid-column: 2; font-size: 0.85rem; color: var(--quiet); }
+/* The screen's name and the recording day have the same weight: they are
+   the two things the frame says the owner is acting on. */
+header .part, header .day .date {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+/* The query bar and its count, in one border (common region, visual 1.3):
+   the border is the label's, and the input inside has none. */
+header .search {
+  flex: 1 1 18rem;
+  min-width: 12rem;
+  display: flex;
+  align-items: baseline;
+  background: var(--card);
+  border: 1px solid var(--faint);
+  border-radius: 3px;
+  padding-right: 0.5rem;
+}
+header .search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+header #query {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  outline: none;
+  background: none;
+}
+header .search .count {
+  color: var(--quiet);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Set apart from the query bar by more than the header's gap. */
+/* Around the date, the words and the keys are small and quiet, all alike. */
+header .day { color: var(--quiet); margin-left: 1rem; }
+header .day .small { font-size: 0.85rem; }
+/* "recording" and how far back, at a fixed width and against the date, so
+   that the date and the keys after it stay in place while the day is
+   stepped (V6). Any spare width falls before "recording", beside the
+   query bar, not inside the phrase. */
+header .day .relative { display: inline-block; min-width: 26ch; text-align: right; }
+/* The recording day's keys, key first; a click does what the key does. */
+header .day-keys { margin-left: 0.75rem; font-size: 0.85rem; }
+header .day-keys button {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+header .day-keys button:hover:not(:disabled) { color: var(--ink); }
+header .day-keys button:disabled { color: var(--faint); cursor: default; }
+/* The record screen: export and import, seldom used, out of the frame. */
+.record { max-width: 40rem; }
+.record .size { margin: 0 0 1rem; font-variant-numeric: tabular-nums; }
+.record h3 { font-size: 0.95rem; margin: 1rem 0 0.25rem; }
+.record p { margin: 0 0 0.5rem; color: var(--quiet); }
+.record button {
   background: none;
   border: 1px solid var(--line);
   border-radius: 3px;
   padding: 0.1rem 0.5rem;
   cursor: pointer;
 }
-header .actions button.current { border-color: var(--ink); font-weight: 600; }
-header .tools { font-size: 0.85rem; }
-header .import { margin-left: 0.5rem; }
-header .import input { width: 12rem; }
 
 main { padding: 1rem; }
 
 .keys { color: var(--quiet); font-size: 0.8rem; }
+/* A key of the keyboard, drawn as a key cap, so that it reads as a key
+   to press and not as a word or punctuation. Its text keeps the colour
+   around it, so that the keys do not compete with what pops out (V3). */
+kbd {
+  display: inline-block;
+  min-width: 1.1em;
+  padding: 0 0.3em;
+  font: inherit;
+  font-size: 0.9em;
+  line-height: 1.35;
+  text-align: center;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid var(--faint);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+}
+.hint { white-space: nowrap; }
 .problem, .problems { color: var(--warn); }
 .quiet, .note { color: var(--quiet); }
 .empty { color: var(--quiet); }
@@ -125,7 +265,17 @@ main { padding: 1rem; }
 .schedule td { padding: 0.25rem 0.75rem 0.25rem 0; vertical-align: baseline; }
 .schedule td.bar { width: 0.6em; color: var(--accent); padding-right: 0.25rem; }
 .schedule tr.critical td.title { font-weight: 600; }
-.schedule tr.cursor td { background: #eef2f6; }
+.schedule tr.cursor td, .schedule li.cursor { background: #eef2f6; }
+.schedule td.mark, .schedule li .mark { width: 1em; color: var(--quiet); }
+.schedule li .mark { display: inline-block; }
+.schedule .marked .words { text-decoration: underline; }
+/* What the last act changed, or whose dates it moved (V7). */
+.schedule tr.changed td { border-top: 1px solid var(--accent); border-bottom: 1px solid var(--accent); }
+.schedule li.changed { outline: 1px solid var(--accent); }
+.schedule .field { font-size: 0.9rem; padding: 0.1rem 0 0.3rem; }
+.schedule .field .keys { margin-left: 0.5rem; }
+.schedule .field .problem { display: block; }
+.schedule li { cursor: default; padding: 0.1rem 0.25rem; }
 .schedule td.estimate { font-variant-numeric: tabular-nums; text-align: right; }
 .schedule td.dates { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .schedule td.after { color: var(--quiet); font-size: 0.9rem; }

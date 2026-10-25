@@ -18,6 +18,13 @@
         action (vals (:on node))]
     action))
 
+(defn- key-caps
+  "The text of every key cap (kbd) in a hiccup tree, in order."
+  [hiccup]
+  (for [node (tree-seq coll? seq hiccup)
+        :when (and (vector? node) (= :kbd (first node)))]
+    (last node)))
+
 (defn- nodes-with-class
   [hiccup class-name]
   (for [node (tree-seq coll? seq hiccup)
@@ -65,11 +72,43 @@
 (deftest the-frame
   (let [shown (set (texts (page (add empty-state "measure spindle runout"))))]
     (is (contains? shown "STAND-UP"))
-    (is (contains? shown "1 of 1"))
-    (is (contains? shown "recording Fri 23 Oct"))
-    (is (contains? shown "1 Stand-up"))
-    (is (contains? shown "2 Schedule"))
+    (is (contains? shown "1 task") "with no query, how many there are")
+    (is (contains? shown "recording last working day,") "Friday, seen on a Monday")
+    (is (contains? shown "Fri Oct 23"))
     (is (contains? shown "measure spindle runout")))
+  (testing "the mascot opens the menu of screens, which says each one's key, name and purpose"
+    (let [closed (page empty-state)
+          opened (page (run empty-state [:command/toggle-menu]))
+          titles (keep :title (filter map? (tree-seq coll? seq closed)))]
+      (is (some #{"Choose a view: 1 Stand-up · 2 Schedule · 3 Record"} titles) "the hover text")
+      (let [button (first (filter #(and (vector? %) (= :button.app (first %)))
+                                  (tree-seq coll? seq closed)))]
+        (is (some #{"STAND-UP"} (texts button)) "the screen's name is part of the menu button"))
+      (is (some #{[:command/toggle-menu]} (handlers closed)))
+      (is (not (some #{[:command/show-schedule]} (handlers closed))) "no buttons for the screens")
+      (is (not (some #{"Schedule"} (texts closed))))
+      (is (= ["1" "Stand-up" "2" "Schedule" "3" "Record"]
+             (filter #{"1" "2" "3" "Stand-up" "Schedule" "Record"} (texts opened))))
+      (is (some #(re-find #"^When will each task finish" %) (texts opened)))
+      (is (some #{[:command/show-stand-up]} (handlers opened)))
+      (is (some #{[:command/show-schedule]} (handlers opened)))
+      (is (= 1 (count (nodes-with-class opened "current"))) "the screen shown")))
+  (testing "the recording day's keys, key first, also buttons, with the day explained on hover"
+    (let [hiccup (page empty-state)
+          day-node (first (filter #(and (vector? %) (= :span.day (first %))) (tree-seq coll? seq hiccup)))
+          buttons (filter #(and (vector? %) (= :button.hint (first %))) (tree-seq coll? seq day-node))]
+      (is (= ["[" "]"] (key-caps day-node)))
+      (is (= [" earlier" " later"] (map last buttons)))
+      (is (some #{[:command/day-back]} (handlers day-node)))
+      (is (some #{[:command/day-forward]} (handlers day-node)))
+      (is (= (str "Recording day: s started, f finished, w worked on and b waiting are saved for this day. "
+                  "It starts on the last working day. [ earlier catches up on missed days; ] later comes back.")
+             (:title (second day-node))))
+      (is (not-any? :disabled (map second buttons)) "Friday can move later, to Monday")
+      (let [at-today (page (run empty-state [:command/day-forward]))
+            later (last (filter #(and (vector? %) (= :button.hint (first %)))
+                                (tree-seq coll? seq at-today)))]
+        (is (:disabled (second later)) "today cannot move later"))))
   (testing "a recording day more than a working day back is flagged"
     (is (seq (nodes-with-class (page (run empty-state [:command/day-back])) "stale")))
     (is (empty? (nodes-with-class (page empty-state) "stale")))))
@@ -85,19 +124,26 @@
     (is (= 1 (count (nodes-with-class hiccup "recorded"))) "one has its record for the day")
     (is (= 1 (count (nodes-with-class hiccup "cursor"))))
     (is (contains? shown "✓"))
-    (is (some #(re-find #"s started · f finished · w worked on" %) (texts hiccup)) "the keys beside the cursor")
+    (testing "the keys beside the cursor, each in a key cap and before what it does"
+      (is (= ["s" "f" "w" "b" "e" "t" "a" "x" "r"]
+             (key-caps (first (nodes-with-class hiccup "cursor")))))
+      (is (= [:span.hint [:kbd "s"] " started"]
+             (first (filter #(and (vector? %) (= :span.hint (first %))) (tree-seq coll? seq hiccup))))))
+    (is (= ["[" "]"] (take-last 2 (key-caps (first (filter #(and (vector? %) (= :header (first %)))
+                                                           (tree-seq coll? seq hiccup))))))
+        "the recording day's keys")
     (is (some #{[:command/cursor one]} (handlers hiccup)) "a click moves the cursor")
     (testing "a waiting task shows on whom, in its column"
       (let [waiting (run state [:command/cursor one] [:command/open-wait] [:command/reason-person]
                          [:command/typed :field "Tanaka"] [:command/record])
             t (texts (page waiting))]
-        (is (some #{"waiting on Tanaka since Fri 23 Oct"} t))
+        (is (some #{"waiting on Tanaka since Fri Oct 23"} t))
         (is (= 2 (count (filter #{"no estimate"} t))))))
     (testing "the query hides what does not match"
       (let [t (set (texts (page (run state [:command/typed :query "tw"]))))]
         (is (contains? t "two"))
         (is (not (contains? t "one")))
-        (is (contains? t "1 of 2"))))))
+        (is (contains? t "1 of 2 tasks"))))))
 
 (deftest the-fields
   (let [state (add empty-state "one")
@@ -123,7 +169,9 @@
     (is (= 2 (count (filter #{"working days"} (texts hiccup)))) "two lines")
     (is (some #{[:command/typed [:line 1 :title] :field/text]} (handlers hiccup)))
     (is (some #{[:command/paste 0]} (handlers hiccup)))
-    (is (some #(re-find #"⌘Enter record" %) (texts hiccup)))
+    (is (some #{"⌘Enter"} (key-caps hiccup)))
+    (is (some #{"Tab"} (key-caps hiccup)))
+    (is (some #{" record"} (texts hiccup)))
     (testing "an estimate on a line already in progress is kept but not counted"
       (let [t (texts (page (run opened [:command/state-down 0] [:command/typed [:line 0 :estimate] "2"])))]
         (is (some #{"estimated after its start: kept, not counted"} t))))))
@@ -138,16 +186,49 @@
         hiccup (page state)
         shown (set (texts hiccup))]
     (is (contains? shown "SCHEDULE"))
-    (is (contains? shown "finishes Wed 4 Nov") "A Mon to Wed, B Thu to the next Wed")
-    (is (contains? shown "Mon 26 Oct – Wed 28 Oct"))
-    (is (contains? shown "Thu 29 Oct – Wed 4 Nov"))
+    (is (contains? shown "finishes Wed Nov 4") "A Mon to Wed, B Thu to the next Wed")
+    (is (contains? shown "Mon Oct 26 – Wed Oct 28"))
+    (is (contains? shown "Thu Oct 29 – Wed Nov 4"))
     (is (contains? shown "3 wd"))
     (is (contains? shown "after A"))
     (is (= 2 (count (nodes-with-class hiccup "critical"))))
     (is (contains? shown "B comes after"))
     (is (contains? shown "Not estimated"))
     (is (contains? shown "C"))
-    (is (some #(= :svg.chain (first %)) (filter vector? (tree-seq coll? seq hiccup))) "the chain is drawn")))
+    (is (some #(= :svg.chain (first %)) (filter vector? (tree-seq coll? seq hiccup))) "the chain is drawn")
+    (testing "a mark shows on its row"
+      (let [marked (page (run state [:command/cursor a] [:command/mark]))]
+        (is (= 1 (count (nodes-with-class marked "marked"))))
+        (is (some #{"✗"} (texts marked)))))
+    (testing "the estimate field opens on the row, with the row's estimate hidden"
+      (let [opened (page (run state [:command/cursor a] [:command/open-estimate]))]
+        (is (some #{:input#field} (tree-seq coll? seq opened)))
+        (is (some #{" working days, as likely more as less"} (texts opened)))
+        (is (not (some #{"3 wd"} (texts opened))))
+        (is (some #{"5 wd"} (texts opened)))))
+    (testing "the tasks whose dates the last act moved are marked (V7)"
+      (let [moved (page (estimate state a 4))]
+        (is (= 2 (count (filter #(= :tr (first %)) (nodes-with-class moved "changed"))))
+            "A was estimated again, and B moves with it")))
+    (testing "the query hides rows that do not match"
+      (let [t (set (texts (page (run state [:command/typed :query "B"]))))]
+        (is (contains? t "Thu Oct 29 – Wed Nov 4"))
+        (is (not (contains? t "Mon Oct 26 – Wed Oct 28")))))))
+
+(deftest the-record-screen
+  (let [state (add empty-state "one" "two")]
+    (testing "export and import are not in the frame"
+      (is (not (some #{[:command/export]} (handlers (page state)))))
+      (is (not (some #{[:command/import]} (handlers (page state))))))
+    (testing "they are on the record screen, with the record's size"
+      (let [hiccup (page (run state [:command/show-record]))
+            shown (set (texts hiccup))]
+        (is (contains? shown "RECORD"))
+        (is (contains? shown "2 acts, from 2026-10-26 to 2026-10-26; 2 tasks on the board, 0 replaced or dropped"))
+        (is (some #{[:command/export]} (handlers hiccup)))
+        (is (some #{[:command/import]} (handlers hiccup)))))
+    (testing "an empty record says so"
+      (is (some #{"The record is empty."} (texts (page (run empty-state [:command/show-record]))))))))
 
 (deftest problems-and-the-footer
   (is (some #{"an act needs a time at [0 :act/at]"}

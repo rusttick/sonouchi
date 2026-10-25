@@ -26,6 +26,14 @@
   (or (:state/recording-day state)
       (days/previous-working-day (today state))))
 
+(defn later-day
+  "The working day after the recording day, or nil when it is after
+  today: the recording day moves forward, but never past today."
+  [state]
+  (let [next-day (days/next-working-day (recording-day state))]
+    (when-not (pos? (compare next-day (today state)))
+      next-day)))
+
 (defn current
   "Entity id to its current map, from the log in the state."
   [state]
@@ -97,6 +105,11 @@
   [entities latest]
   (board/not-estimated (board/tasks entities) latest))
 
+(defn- places
+  "Task id to its place in the board's order."
+  [state entities]
+  (zipmap (board/ordered (:state/log state) entities) (range)))
+
 (defn rows
   "The ids of the schedule's rows: the scheduled tasks that are not
   done, in the order of the dependency graph, with ties in the board's
@@ -104,11 +117,67 @@
   [state entities latest]
   (let [{:schedule/keys [times]} (scheduled state entities latest)
         depth (chain/depth (update-vals (board/tasks entities) #(select-keys % [:task/after])))
-        place (zipmap (board/ordered (:state/log state) entities) (range))]
+        place (places state entities)]
     (->> (keys times)
          (remove #(:task/finished (entities %)))
          (sort-by (juxt depth place))
          vec)))
+
+(defn shown-rows
+  "The schedule's rows that the query leaves visible, shown being the
+  set of ids that match it. The schedule is computed from every task."
+  [state entities latest shown]
+  (filterv shown (rows state entities latest)))
+
+(defn shown-not-estimated
+  "The ids of the tasks the schedule lists as not estimated, in the
+  board's order: those in not-estimated that have not finished and that
+  the query leaves visible, shown being the set of ids that match it."
+  [state entities latest shown]
+  (->> (keys (not-estimated entities latest))
+       (filter shown)
+       (remove #(:task/finished (entities %)))
+       (sort-by (places state entities))
+       vec))
+
+(defn schedule-ids
+  "The ids the cursor moves over on the schedule, in the order shown:
+  its visible rows, then the visible tasks not estimated."
+  [state entities latest shown]
+  (into (shown-rows state entities latest shown)
+        (shown-not-estimated state entities latest shown)))
+
+(defn cursor-on-screen
+  "The id under the cursor on the screen the state shows. On the
+  schedule it is the state's cursor when that is in schedule-ids, else
+  the first of them; elsewhere it is what cursor gives for cols. shown
+  is the set of ids matching the query, and cols the board's columns."
+  [state entities shown cols]
+  (if (= :schedule (:state/screen state))
+    (let [ids (schedule-ids state entities (latest-estimates state entities) shown)
+          id (:state/cursor state)]
+      (if (some #{id} ids) id (first ids)))
+    (cursor state cols)))
+
+(defn- scheduled-dates
+  "Task id to its first and last scheduled day, as ISO days."
+  [state]
+  (let [entities (current state)
+        day (today state)]
+    (update-vals (:schedule/times (scheduled state entities (latest-estimates state entities)))
+                 (fn [{:schedule/keys [start-day finish-day]}]
+                   [(board/start-day day start-day) (board/last-day day finish-day)]))))
+
+(defn moved-by-last-act
+  "The ids of the tasks whose scheduled dates the last act in the log
+  moved, or gave them (V7)."
+  [{:state/keys [log] :as state}]
+  (if (seq log)
+    (let [before (scheduled-dates (update state :state/log pop))]
+      (set (for [[id dates] (scheduled-dates state)
+                 :when (not= dates (before id))]
+             id)))
+    #{}))
 
 (defn changed-by-last-act
   "The ids of the tasks the last act in the log changed: the tasks it

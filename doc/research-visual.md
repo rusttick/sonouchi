@@ -374,6 +374,15 @@ authors attribute partly to their origins in print.
   inside lists.
 - The mental map evidence for dynamic graphs is mixed (Archambault
   2011, and the 2013 review cited in it).
+- **Date formats.** Searched on 2026-10-25: no controlled study found
+  of reading speed or errors for day-month against month-day order.
+  What exists is practitioner guidance: write the month as a name, not
+  a number, because numeric dates such as 12/11/10 are read
+  differently by region (Opquast Digital Quality Framework, rule 4,
+  unchecked), and use the order the audience is used to. A survey of
+  about 980 people found both orders in common use (Syntagm, about
+  2009, unchecked). With the month as a name, either order is
+  unambiguous.
 
 ## References
 

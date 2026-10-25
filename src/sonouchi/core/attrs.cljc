@@ -49,8 +49,14 @@
    ;; The screen's own state, in the state map and not in the log
 
    :state/screen
-   {:doc "Which screen is shown: :stand-up, :replace or :schedule."
-    :schema [:enum :stand-up :replace :schedule]}
+   {:doc "Which screen is shown: :stand-up, :replace, :schedule, or
+    :record, where the log is exported and imported."
+    :schema [:enum :stand-up :replace :schedule :record]}
+
+   :state/menu-open
+   {:doc "Present, and true, while the menu of screens is open, from a
+  click on the mascot. Absent when it is closed."
+    :schema true?}
 
    :state/query
    {:doc "The text in the query bar."
@@ -455,6 +461,15 @@
 
    :command/show-schedule
    {:doc "Show the schedule (2)."
+    :schema keyword?}
+
+   :command/show-record
+   {:doc "Show the record screen (3), where the log is exported to a
+    file and imported from one."
+    :schema keyword?}
+
+   :command/toggle-menu
+   {:doc "Open or close the menu of screens (a click on the mascot)."
     :schema keyword?}
 
    :command/open-replace

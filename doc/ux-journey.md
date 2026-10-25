@@ -66,13 +66,23 @@ apart:
   card, not a column (ux-design, "Waiting is not a state"), and
   design3 uses its reasons in Step 6.
 
+Days are written weekday, month, day, as "Fri Oct 23", everywhere a
+day is shown: the frame, the waits and the schedule. The research is
+silent on the order (visual, "Where the research is thin"); the month
+is a name, which practitioner guidance asks for and which makes either
+order unambiguous. Chosen because it is the order the owner says at
+the stand-up, "Friday October 23rd", so nothing is translated between
+the whiteboard and the screen; it is also the order of Japanese dates,
+10月23日.
+
 ## The frame
 
 The same on every screen (V9):
 
-    sonouchi   STAND-UP   [ query              ]   12 of 31 · recording Fri 23 Oct   1 Stand-up  2 Schedule   Export Import
+    🦝   STAND-UP   [ query     12 of 31 tasks ]   recording last working day, Fri Oct 23   [ earlier · ] later
 
-- **The action's name,** large (V10): STAND-UP, REPLACE or SCHEDULE.
+- **The action's name,** large (V10): STAND-UP, REPLACE, SCHEDULE or
+  RECORD.
 - **The query bar,** top centre. `/` moves to it. Typing filters every
   column at once to the tasks that match every typed word: a word of
   the title, or of whom an open wait is on, that starts with it, in
@@ -82,22 +92,64 @@ The same on every screen (V9):
   Enter opens the replacement display with no old tasks and the query
   text as the first new title, so a task that was not found takes no
   retyping. Escape clears the query and returns to the board.
-- **The count:** the tasks shown, of all the tasks on the board.
+- **The count:** the tasks shown, of all the tasks on the board, as
+  "12 of 31 tasks", or "31 tasks" when there is no query. It is inside
+  the query bar's border, at its right end, because it is the query's
+  result: items inside one boundary are seen as belonging together
+  (common region, Palmer 1992, visual 1.3). The trial showed the need:
+  standing between the bar and the recording day, with nothing to group
+  it with either, the count took a while to make sense of.
 - **The recording day:** the day that started, finished, worked on and
   waiting refer to. It is the last working day before today, because
   the stand-up reports yesterday. `[` and `]` move it a day back or
   forward, so that a gap of several days can be caught up (Epstein
-  2015). A recording day more than one working day back is shown in
-  full ink, because recall falls off after a day (Gershuny 2017,
-  workflow 10); the record is still taken. Moving the recording day
+  2015). The date itself has the same weight as the screen's name,
+  since both say what the keys act on; "recording", the word for how
+  far back it is, and the keys are small and quiet around it, always
+  alike. A day more than one working day back is flagged by those
+  words alone, such as "3 working days ago", because recall falls off
+  after a day (Gershuny 2017, workflow 10); the record is still taken.
+  The trial showed that making the words full ink then read as the
+  area changing with the keys, so they stay quiet. Moving the recording day
   is also how a wrong start, finish or wait is corrected: the same
   key on the right day appends a new fact, and the old one stays in
-  the log (design3, rule 3).
+  the log (design3, rule 3). The keys are shown key first, as every
+  other key is: `[` earlier · `]` later, and a click on either does
+  what the key does (V11). Later is greyed out when the day is today.
+  Hovering over the date says what it is for and how it moves. Before
+  the date, as it would be said, words say how far back it is: today,
+  yesterday, last working day (Friday, seen on a Monday), or n working
+  days ago. With "recording" they take a fixed width, set against the
+  date, so that the date and the keys stay in place while the day is
+  stepped (V6); the spare width falls before "recording", not inside
+  the phrase. It is
+  not in a menu of its own, because it is state the owner needs in
+  view whenever `s`, `f`, `w` or `b` is pressed (V8).
 - **The actions,** in a flat list that is always in the same order,
-  each with its key: `1` the stand-up board, `2` the schedule. The
-  replacement display is opened from the board, not from this list.
+  each with its key: `1` the stand-up board, `2` the schedule, `3` the
+  record, where the log is exported to a file and imported from one.
+  Export and import are seldom used, so they are a screen of their own
+  and not in the frame; the screen shows how many acts and tasks the
+  record holds and the days it spans, so that one file can be told
+  from another. Only the screen keys act there. The
+  list is a menu from the mascot, top left: the mascot and the
+  screen's name are one button, with one hover text that names the
+  keys, and a click on either opens it, as a speech bubble from the
+  mascot. Each entry shows its key, its name and the question it
+  answers. A click on an entry, a second click on the button, a click
+  anywhere else, or Escape closes it. The keys work whether
+  the menu is open or not. The owner chose the menu over buttons
+  always on screen; V11 asks for keys shown on screen, so a trial
+  should check that the keys are still found. The replacement display
+  is opened from the board, not from this list.
 - **The footer** shows how long the last act took, flagged above 0.1 s
   (V12).
+- **Keys** are drawn as key caps wherever they are shown, each before
+  what it does, as in `s` started. The research is silent on how a key
+  is best marked; chosen because the trial showed that `[` and `]`
+  beside the recording day read as punctuation, not as keys. The caps
+  keep the text colour around them, so that they do not compete with
+  what is meant to pop out (V3).
 
 ## Stage 3: the stand-up, on the board
 
@@ -119,7 +171,7 @@ when it has none. It does not show the estimate itself, because a
 task's own earlier estimate anchors a re-estimate (ux-design,
 "Estimates are made fresh"); the schedule shows the numbers. A card
 with an open wait says, small, on whom it waits and since when, such
-as "waiting on Tanaka since Tue 20 Oct", or "waiting: not in the
+as "waiting on Tanaka since Tue Oct 20", or "waiting: not in the
 plan"; the task keeps its column (ux-design, "Waiting is not a
 state"). Typing the name in the query bar lists the tasks waiting on
 that person. Within a column,
@@ -286,12 +338,12 @@ the rules give, not a proven one.
 
 On design3's running example, with today Monday 26 October 2026:
 
-    SCHEDULE                              finishes Wed 11 Nov · critical: A B D E
-    ▌ A  design            3 wd   Mon 26 Oct – Wed 28 Oct
-    ▌ B  build back end    5 wd   Thu 29 Oct – Wed  4 Nov   after A
-      C  build front end   4 wd   Thu 29 Oct – Tue  3 Nov   after A
-    ▌ D  integrate         2 wd   Thu  5 Nov – Fri  6 Nov   after B, C
-    ▌ E  test              3 wd   Mon  9 Nov – Wed 11 Nov   after D
+    SCHEDULE                              finishes Wed Nov 11 · critical: A B D E
+    ▌ A  design            3 wd   Mon Oct 26 – Wed Oct 28
+    ▌ B  build back end    5 wd   Thu Oct 29 – Wed Nov  4   after A
+      C  build front end   4 wd   Thu Oct 29 – Tue Nov  3   after A
+    ▌ D  integrate         2 wd   Thu Nov  5 – Fri Nov  6   after B, C
+    ▌ E  test              3 wd   Mon Nov  9 – Wed Nov 11   after D
 
     D comes after:   A ─▶ B ─▶ D
                      A ─▶ C ─┘
@@ -317,6 +369,10 @@ On design3's running example, with today Monday 26 October 2026:
   is shown.
 
 **The acts** are the board's, on a cursor over the tasks: `t`, `a`,
-`x`, `s`, `f` and undo. The schedule changes with each act, in place
+`x`, `s`, `f` and undo. The cursor moves down the rows and on into
+the tasks not estimated, because those are what the owner can fix now
+(V3, V8). A mark shows as it does on a card, and the estimate field
+opens under the row, with the row's estimate hidden while it is open.
+The board's other keys do nothing here. The schedule changes with each act, in place
 (V12), and the tasks whose dates moved are marked (V7). The schedule
 is never reordered by its dates unless the owner asks (V6).

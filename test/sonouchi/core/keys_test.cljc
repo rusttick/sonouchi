@@ -17,6 +17,32 @@
   (is (nil? (keys/command :mac "S" :stand-up [:query "s"])) "typing in the query bar")
   (is (nil? (keys/command :mac "Q" :stand-up nil)) "an unbound key goes to the browser"))
 
+(deftest the-schedule-takes-its-own-acts
+  (testing "t, a, x, s and f, as ux-journey's Stage 5 gives them"
+    (is (= [:command/open-estimate] (keys/command :mac "T" :schedule nil)))
+    (is (= [:action/set-after] (keys/command :mac "A" :schedule nil)))
+    (is (= [:command/mark] (keys/command :mac "X" :schedule nil)))
+    (is (= [:action/record-start] (keys/command :mac "S" :schedule nil)))
+    (is (= [:action/record-finish] (keys/command :mac "F" :schedule nil))))
+  (testing "and the frame's keys"
+    (is (= [:command/show-stand-up] (keys/command :mac "1" :schedule nil)))
+    (is (= [:command/query] (keys/command :mac "/" :schedule nil))))
+  (testing "not the board's other acts"
+    (is (nil? (keys/command :mac "W" :schedule nil)))
+    (is (nil? (keys/command :mac "B" :schedule nil)))
+    (is (nil? (keys/command :mac "E" :schedule nil)))
+    (is (nil? (keys/command :mac "R" :schedule nil)))
+    (is (nil? (keys/command :mac "ArrowLeft" :schedule nil)) "the rows are one column")))
+
+(deftest the-record-screen-takes-only-the-screen-keys
+  (is (= [:command/show-record] (keys/command :mac "3" :stand-up nil)))
+  (is (= [:command/show-record] (keys/command :mac "3" :schedule nil)))
+  (is (= [:command/show-stand-up] (keys/command :mac "1" :record nil)))
+  (is (= [:command/show-schedule] (keys/command :mac "2" :record nil)))
+  (is (nil? (keys/command :mac "S" :record nil)))
+  (is (nil? (keys/command :mac "ArrowDown" :record nil)))
+  (is (= "3" (keys/label :mac :command/show-record))))
+
 (deftest escape-undo-and-redo
   (is (= [:command/clear] (keys/command :mac "Escape" :replace [:line 0 :title "x"])))
   (is (= [:command/undo] (keys/command :mac "Meta+Z" :stand-up nil)))

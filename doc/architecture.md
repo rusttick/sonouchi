@@ -82,15 +82,15 @@ Built:
 | `sonouchi.core.schedule` | design3's Step 0: the forward pass of the critical path method with actual days replacing computed ones, the backward pass for slack, the critical path, and cycles and unknown tasks described as data. Day 0 is the start of today; a started task finishes at day 1 at the earliest | this page |
 | `sonouchi.core.estimates` | every estimate with the time it was made, each task's latest, whether design3 counts it, parsing what the owner typed, and the act that records one | this page, "The data for version 0" |
 | `sonouchi.core.board` | the tasks on the board, each one's column and place, its open wait, the days it has records for, the text it is found by, and the tasks turned into the scheduler's input from today | this page, "The data for version 0" |
-| `sonouchi.core.days` | days as ISO strings: today from the shell's clock, the next and previous day, working days, adding and counting them, and a day's label such as "Mon 26 Oct". No host calendar: the civil-date arithmetic is written out, so both platforms agree | this page, "The data for version 0" |
+| `sonouchi.core.days` | days as ISO strings: today from the shell's clock, the next and previous day, working days, adding and counting them, a day's label such as "Mon Oct 26", and how far back a day is in words. No host calendar: the civil-date arithmetic is written out, so both platforms agree | this page, "The data for version 0" |
 
 The screens are those of [ux-journey.md](ux-journey.md); the quick-entry
 page is gone, and its logs still load.
 
 ## The data for version 0
 
-The screens in [ux-journey.md](ux-journey.md) need these facts. They
-are not yet in the registry.
+The screens in [ux-journey.md](ux-journey.md) need these facts, and
+each is in the registry, `src/sonouchi/core/attrs.cljc`.
 
 **A day** is a local calendar date, written as an ISO string such as
 `"2026-10-23"`. EDN has no date type, and a string compares and sorts
@@ -200,7 +200,8 @@ because it describes the screen and not the work:
 
 | Key | What it holds |
 |---|---|
-| `:state/screen` | `:stand-up`, `:replace` or `:schedule` |
+| `:state/screen` | `:stand-up`, `:replace`, `:schedule` or `:record` |
+| `:state/menu-open` | present while the menu of screens is open |
 | `:state/query` | the text in the query bar |
 | `:state/recording-day` | the day the stand-up keys record |
 | `:state/cursor` | the task under the cursor |
